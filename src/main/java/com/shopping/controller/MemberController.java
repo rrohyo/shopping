@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
+
     @GetMapping("/join")
     public String joinForm() {
         return "member/join";
@@ -32,20 +33,27 @@ public class MemberController {
     public String loginForm() {
         return "member/login";
     }
+
+
     @PostMapping("/login")
-    public String login(@RequestParam String loginId,
+    public String login(@RequestParam String username,
                         @RequestParam String password,
                         HttpSession session,
                         Model model) {
         try {
-            Member m = memberService.login(loginId, password);
-            session.setAttribute("LOGIN_MEMBER_ID", m.getId());
-            session.setAttribute("LOGIN_MEMBER_NAME", m.getName());
-            session.setAttribute("LOGIN_MEMBER_ROLE", m.getRole().getName());
-            return "redirect:/";
+            System.out.println("post login!!!!!");
+            Member m = memberService.login(username, password);
+            System.out.println("controller m === " + m);
+
+            model.addAttribute("successMessage", "로그인 성공!!!!!");
+//            session.setAttribute("LOGIN_MEMBER_NAME", m.getName());
+//            session.setAttribute("LOGIN_MEMBER_ROLE", m.getRoles());
+//            return "redirect:/";
+            return "login";
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage()); // 화면에 에러 출력
-            return "member/login";
+            System.out.println("exception!!!!!!!!!");
+            model.addAttribute("errorMessage", e.getMessage());// 화면에 에러 출력
+            return "login";
         }
     }
 

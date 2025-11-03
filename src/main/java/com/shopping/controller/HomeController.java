@@ -10,9 +10,6 @@ public class HomeController {
 
     @GetMapping("/login")
     public String showMain(HttpSession session, Model model) {
-        model.addAttribute("memberId",   session.getAttribute("LOGIN_MEMBER_ID"));
-        model.addAttribute("memberName", session.getAttribute("LOGIN_MEMBER_NAME"));
-        model.addAttribute("memberRole", session.getAttribute("LOGIN_MEMBER_ROLE"));
         return "login";
     }
 

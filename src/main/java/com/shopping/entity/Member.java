@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "member")
@@ -17,10 +18,10 @@ public class Member {
 
     private String name;
     private String email;
+    private String password;
     private String phoneNumber;
     private String address;
-    private String loginId;
-    private String loginPw;
+
 
     @Column(nullable = false)
     private LocalDateTime regDate;
@@ -28,7 +29,7 @@ public class Member {
     @Column(nullable = false)
     private LocalDateTime updateDate;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
 }
