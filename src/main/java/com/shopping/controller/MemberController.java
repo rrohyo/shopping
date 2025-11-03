@@ -57,7 +57,7 @@ public class MemberController {
         }
     }
 
-    // 로그아웃
+
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
