@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .signup-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .signup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .signup-header h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .signup-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 2px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group input.error {
+            border-color: #e74c3c;
+        }
+        
+        .form-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .error-text {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-text.show {
+            display: block;
+        }
+        
+        .field-error {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 5px;
+        }
+        
+        .password-strength {
+            margin-top: 5px;
+            height: 5px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s, background 0.3s;
+        }
+        
+        .password-strength-bar.weak {
+            width: 33%;
+            background: #e74c3c;
+        }
+        
+        .password-strength-bar.medium {
+            width: 66%;
+            background: #f39c12;
+        }
+        
+        .password-strength-bar.strong {
+            width: 100%;
+            background: #27ae60;
+        }
+        
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .terms-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            margin-top: 3px;
+        }
+        
+        .terms-checkbox label {
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .terms-checkbox label a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .terms-checkbox label a:hover {
+            text-decoration: underline;
+        }
+        
+        .btn-signup {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-signup:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-signup:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .btn-signup:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #ddd;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #666;
+            font-size: 14px;
+            position: relative;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .login-link p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .login-link a:hover {
+            color: #764ba2;
+        }
+        
+        .alert-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .alert-error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+        
+        .alert-success {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+        }
+        
+        .global-error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <h2>회원가입</h2>
+            <p>새 계정을 만들어주세요</p>
+        </div>
+        
+
+        
+        <!-- 알림 메시지 -->
+        <div th:if="${errorMessage}" class="alert-message alert-error">
+            <span th:text="${errorMessage}">에러 메시지</span>
+        </div>
+        
+        <div th:if="${successMessage}" class="alert-message alert-success">
+            <span th:text="${successMessage}">성공 메시지</span>
+        </div>
+        
+        <form id="signupForm" th:action="@{/member/signup}" th:object="${member}" method="post">
+            <!-- 전역 에러 메시지 -->
+            <div th:if="${#fields.hasGlobalErrors()}" class="global-error">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">에러 메시지</p>
+            </div>
+
+            <div class="form-group">
+                <label for="name">이름 <span class="required">*</span></label>
+                <input type="text" 
+                       id="name" 
+                       th:field="*{name}"
+                       placeholder="실명을 입력하세요"
+                       th:classappend="${#fields.hasErrors('name')} ? 'error' : null"
+                       required>
+                <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">이름 오류</span>
+                <span class="error-text" id="nameError">이름을 입력해주세요.</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">이메일 <span class="required">*</span></label>
+                <input type="email" 
+                       id="email" 
+                       th:field="*{email}"
+                       placeholder="example@email.com"
+                       th:classappend="${#fields.hasErrors('email')} ? 'error' : null"
+                       required>
+                <span class="form-text">이메일은 로그인 ID로 사용됩니다.</span>
+                <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">이메일 오류</span>
+                <span class="error-text" id="emailError">유효한 이메일 주소를 입력해주세요.</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">비밀번호 <span class="required">*</span></label>
+                <input type="password" 
+                       id="password" 
+                       th:field="*{password}"
+                       placeholder="비밀번호를 입력하세요"
+                       th:classappend="${#fields.hasErrors('password')} ? 'error' : null"
+                       required>
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                </div>
+                <span class="form-text">영문, 숫자, 특수문자 포함 8자 이상</span>
+                <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">비밀번호 오류</span>
+                <span class="error-text" id="passwordError">비밀번호 조건을 만족해주세요.</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="passwordConfirm">비밀번호 확인 <span class="required">*</span></label>
+                <input type="password" 
+                       id="passwordConfirm" 
+                       name="passwordConfirm" 
+                       placeholder="비밀번호를 다시 입력하세요"
+                       required>
+                <span class="error-text" id="passwordConfirmError">비밀번호가 일치하지 않습니다.</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="phoneNumber">전화번호 <span class="required">*</span></label>
+                <input type="tel" 
+                       id="phoneNumber" 
+                       th:field="*{phoneNumber}"
+                       placeholder="010-0000-0000"
+                       maxlength="13"
+                       th:classappend="${#fields.hasErrors('phoneNumber')} ? 'error' : null"
+                       required>
+                <span class="field-error" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}">전화번호 오류</span>
+                <span class="error-text" id="phoneError">올바른 전화번호 형식이 아닙니다.</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">주소 <span class="required">*</span></label>
+                <input type="text" 
+                       id="address" 
+                       th:field="*{address}"
+                       placeholder="주소를 입력하세요"
+                       th:classappend="${#fields.hasErrors('address')} ? 'error' : null"
+                       required>
+                <span class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">주소 오류</span>
+                <span class="error-text" id="addressError">주소를 입력해주세요.</span>
+            </div>
+            
+            <div class="terms-checkbox">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">
+                    <a th:href="@{/terms}" target="_blank">이용약관</a> 및 
+                    <a th:href="@{/privacy}" target="_blank">개인정보처리방침</a>에 동의합니다.
+                </label>
+            </div>
+            
+            <button type="submit" class="btn-signup" id="submitBtn">회원가입</button>
+        </form>
+        
+        <div class="divider">
+            <span>또는</span>
+        </div>
+        
+        <div class="login-link">
+            <p>이미 계정이 있으신가요? <a th:href="@{/login}">로그인</a></p>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        // 전화번호 자동 포맷팅
+        document.getElementById('phoneNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            let formatted = '';
+            
+            if (value.length <= 3) {
+                formatted = value;
+            } else if (value.length <= 7) {
+                formatted = value.slice(0, 3) + '-' + value.slice(3);
+            } else if (value.length <= 11) {
+                formatted = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7);
+            }
+            
+            e.target.value = formatted;
+        });
+        
+        // 비밀번호 강도 체크
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            strengthBar.className = 'password-strength-bar';
+            if (strength <= 2) {
+                strengthBar.classList.add('weak');
+            } else if (strength === 3) {
+                strengthBar.classList.add('medium');
+            } else {
+                strengthBar.classList.add('strong');
+            }
+        });
+        
+        // 폼 유효성 검사
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let isValid = true;
+            
+            // 이름 검증
+            const name = document.getElementById('name').value.trim();
+            if (name.length < 2) {
+                document.getElementById('nameError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('nameError').classList.remove('show');
+            }
+            
+            // 이메일 검증
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('emailError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('emailError').classList.remove('show');
+            }
+            
+            // 비밀번호 검증
+            const password = document.getElementById('password').value;
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                document.getElementById('passwordError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('passwordError').classList.remove('show');
+            }
+            
+            // 비밀번호 확인 검증
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+            if (password !== passwordConfirm) {
+                document.getElementById('passwordConfirmError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('passwordConfirmError').classList.remove('show');
+            }
+            
+            // 전화번호 검증
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const phoneRegex = /^01[0-9]-[0-9]{4}-[0-9]{4}$/;
+            if (!phoneRegex.test(phoneNumber)) {
+                document.getElementById('phoneError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('phoneError').classList.remove('show');
+            }
+            
+            // 주소 검증
+            const address = document.getElementById('address').value.trim();
+            if (address.length < 5) {
+                document.getElementById('addressError').classList.add('show');
+                isValid = false;
+            } else {
+                document.getElementById('addressError').classList.remove('show');
+            }
+            
+            // 약관 동의 체크
+            const terms = document.getElementById('terms').checked;
+            if (!terms) {
+                alert('이용약관에 동의해주세요.');
+                isValid = false;
+            }
+            
+            if (isValid) {
+                // 폼 전송
+                this.submit();
+            }
+        });
+        
+        // 실시간 입력 검증
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '' && this.hasAttribute('required')) {
+                    this.classList.add('error');
+                } else {
+                    this.classList.remove('error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

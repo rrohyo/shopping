@@ -17,18 +17,19 @@ import java.util.Set;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final RoleRepository roleRepository;
 
     @Transactional
-    public void join(Member member) {
+    public void signup(Member member) {
         if (memberRepository.existsByEmail(member.getEmail())) {
             throw new RuntimeException("이미 가입된 이메일입니다.");
         }
+        Role userRole = roleRepository.findByName("USER")
+                .orElseThrow(() -> new IllegalStateException("기본 USER(ROLE)이 없습니다."));
 
         member.setRegDate(LocalDateTime.now());
         member.setUpdateDate(LocalDateTime.now());
-        member = memberRepository.save(member);
-        Set<Role> userRoles = Set.of(new Role(Math.toIntExact(member.getId()), "USER"));
-        member.setRoles(userRoles);
+        member.getRoles().add(userRole);
         memberRepository.save(member);
     }
     @Transactional(readOnly = true)

@@ -15,18 +15,19 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    @GetMapping("/join")
-    public String joinForm() {
-        return "member/join";
+    @GetMapping("/signup")
+    public String signupForm(Model model) {
+        model.addAttribute("member", new Member());
+        return "signup";
     }
-    @PostMapping("/join")
-    public String join(@ModelAttribute Member member, Model model) {
+    @PostMapping("/signup")
+    public String signup(@ModelAttribute Member member, Model model) {
         try {
-            memberService.join(member);
-            return "redirect:/member/login";
+            memberService.signup(member);
+            return "redirect:/login";
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage()); // 화면에 에러 출력
-            return "member/join";
+            model.addAttribute("errorMessage", e.getMessage());
+            return "signup";
         }
     }
     @GetMapping("/login")
@@ -44,11 +45,9 @@ public class MemberController {
             System.out.println("post login!!!!!");
             Member m = memberService.login(username, password);
             System.out.println("controller m === " + m);
-
             model.addAttribute("successMessage", "로그인 성공!!!!!");
             session.setAttribute("LOGIN_MEMBER_NAME", m.getName());
             session.setAttribute("LOGIN_MEMBER_ROLE", m.getRoles());
-//            return "redirect:/";
             return "redirect:/home";
         } catch (Exception e) {
             System.out.println("exception!!!!!!!!!");
