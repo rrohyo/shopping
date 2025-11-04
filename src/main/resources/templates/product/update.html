@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>상품 수정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .edit-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* 상단 카드 정보 */
+        .info-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .info-badge {
+            padding: 5px 15px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .info-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        /* 메인 폼 */
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+            padding: 40px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-header h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 폼 그룹 */
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 2px;
+        }
+        
+        .form-group label .optional {
+            color: #95a5a6;
+            font-weight: normal;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+            background: white;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #fafafa;
+        }
+        
+        .form-group input:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        /* 입력 필드 도움말 */
+        .form-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .field-error {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        /* 가격/재고 입력 */
+        .input-with-unit {
+            position: relative;
+        }
+        
+        .input-with-unit input {
+            padding-right: 40px;
+        }
+        
+        .input-unit {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 변경 사항 표시 */
+        .change-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #f39c12;
+            color: white;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-left: 5px;
+            font-weight: normal;
+        }
+        
+        /* 버튼 그룹 */
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-update {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-update:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-update:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+        
+        .btn-reset {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-reset:hover {
+            background: #f8f9fa;
+        }
+        
+        /* 알림 메시지 */
+        .alert-message {
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+        
+        .alert-success {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        /* 변경 사항 요약 */
+        .changes-summary {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .changes-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        .change-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .change-icon {
+            color: #f39c12;
+        }
+        
+        /* 로딩 스피너 */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+            
+            .info-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <!-- 상품 정보 카드 -->
+        <div class="info-card">
+            <div class="info-header">
+                <h3 class="info-title">📦 현재 상품 정보</h3>
+                <span class="info-badge">ID: #<span th:text="${product.id}">1</span></span>
+            </div>
+            <div class="info-content">
+                <div class="info-item">
+                    <span class="info-label">등록일</span>
+                    <span class="info-value" th:text="${#temporals.format(product.regDate, 'yyyy-MM-dd HH:mm')}">2024-01-01</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">마지막 수정</span>
+                    <span class="info-value" th:text="${#temporals.format(product.updateDate, 'yyyy-MM-dd HH:mm')}">2024-01-01</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">현재 재고</span>
+                    <span class="info-value" th:text="${product.stock + '개'}">0개</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">현재 가격</span>
+                    <span class="info-value" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 메인 수정 폼 -->
+        <div class="form-container">
+            <div class="form-header">
+                <h2>🛠️ 상품 정보 수정</h2>
+                <p>변경하려는 항목만 수정하세요</p>
+            </div>
+            
+            <!-- 알림 메시지 -->
+            <div th:if="${errorMessage}" class="alert-message alert-error">
+                <span>⚠️</span>
+                <span th:text="${errorMessage}">에러 메시지</span>
+            </div>
+            
+            <div th:if="${successMessage}" class="alert-message alert-success">
+                <span>✅</span>
+                <span th:text="${successMessage}">성공 메시지</span>
+            </div>
+            
+            <div class="alert-message alert-warning">
+                <span>💡</span>
+                <span>수정 후에는 이전 정보로 되돌릴 수 없으니 신중하게 수정해주세요.</span>
+            </div>
+            
+            <form id="editForm" 
+                  th:action="@{/product/update/{id}(id=${product.id})}"
+                  th:object="${productDto}" 
+                  method="post">
+                
+                <!-- 히든 필드 -->
+                <input type="hidden" th:field="*{id}">
+                <input type="hidden" th:field="*{memberId}">
+                
+                <!-- 기본 정보 섹션 -->
+                <div class="form-section">
+                    <h3 class="section-title">기본 정보</h3>
+                    
+                    <div class="form-group">
+                        <label for="name">
+                            상품명 <span class="required">*</span>
+                            <span class="change-indicator" id="nameChanged" style="display:none;">변경됨</span>
+                        </label>
+                        <input type="text" 
+                               id="name" 
+                               th:field="*{name}"
+                               placeholder="상품명을 입력하세요"
+                               data-original-value="${product.name}"
+                               required>
+                        <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">상품명 오류</span>
+                        <span class="form-text">상품명은 구매자에게 보여지는 가장 중요한 정보입니다.</span>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="description">
+                            상품 설명 <span class="optional">(선택)</span>
+                            <span class="change-indicator" id="descriptionChanged" style="display:none;">변경됨</span>
+                        </label>
+                        <textarea id="description" 
+                                  name="description"
+                                  placeholder="상품에 대한 상세한 설명을 입력하세요"
+                                  data-original-value="${product.description}"
+                                  th:text="${productDto?.description}"></textarea>
+                        <span class="form-text">상품의 특징, 사용법, 주의사항 등을 자세히 작성해주세요.</span>
+                    </div>
+                </div>
+                
+                <!-- 가격 및 재고 섹션 -->
+                <div class="form-section">
+                    <h3 class="section-title">가격 및 재고</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="price">
+                                판매 가격 <span class="required">*</span>
+                                <span class="change-indicator" id="priceChanged" style="display:none;">변경됨</span>
+                            </label>
+                            <div class="input-with-unit">
+                                <input type="number" 
+                                       id="price" 
+                                       th:field="*{price}"
+                                       placeholder="0"
+                                       min="0"
+                                       max="100000000"
+                                       data-original-value="${product.price}"
+                                       required>
+                                <span class="input-unit">원</span>
+                            </div>
+                            <span class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">가격 오류</span>
+                            <span class="form-text">숫자만 입력 (0 ~ 100,000,000)</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="stock">
+                                재고 수량 <span class="required">*</span>
+                                <span class="change-indicator" id="stockChanged" style="display:none;">변경됨</span>
+                            </label>
+                            <div class="input-with-unit">
+                                <input type="number" 
+                                       id="stock" 
+                                       th:field="*{stock}"
+                                       placeholder="0"
+                                       min="0"
+                                       max="999999"
+                                       data-original-value="${product.stock}"
+                                       required>
+                                <span class="input-unit">개</span>
+                            </div>
+                            <span class="field-error" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}">재고 오류</span>
+                            <span class="form-text">현재 보유 수량 (0 ~ 999,999)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 변경 사항 요약 -->
+                <div class="changes-summary" id="changesSummary" style="display:none;">
+                    <div class="changes-title">📝 변경 사항</div>
+                    <div id="changesList"></div>
+                </div>
+                
+                <!-- 버튼 그룹 -->
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-reset" onclick="resetForm()">
+                        ↺ 원래대로
+                    </button>
+                    <a href="/product/detail" th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-cancel">
+                        취소
+                    </a>
+                    <button type="submit" class="btn btn-update" id="submitBtn">
+                        <span id="btnText">💾 수정 완료</span>
+                        <span class="spinner" id="btnSpinner" style="display:none;"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        // 원본 값 저장
+        const originalValues = {
+            name: /*[[${product.name}]]*/ '',
+            description: /*[[${product.description}]]*/ '',
+            price: /*[[${product.price}]]*/ 0,
+            stock: /*[[${product.stock}]]*/ 0
+        };
+        
+        // 변경 사항 감지
+        function checkChanges() {
+            const fields = ['name', 'description', 'price', 'stock'];
+            let hasChanges = false;
+            let changesList = [];
+            
+            fields.forEach(field => {
+                const input = document.getElementById(field);
+                const indicator = document.getElementById(field + 'Changed');
+                const currentValue = input.value;
+                const originalValue = String(originalValues[field] || '');
+                
+                if (currentValue !== originalValue) {
+                    hasChanges = true;
+                    if (indicator) indicator.style.display = 'inline-block';
+                    
+                    // 변경 사항 목록에 추가
+                    let fieldName = field === 'name' ? '상품명' :
+                                   field === 'description' ? '상품 설명' :
+                                   field === 'price' ? '가격' : '재고';
+                    changesList.push(`<div class="change-item">
+                        <span class="change-icon">✏️</span>
+                        <span>${fieldName} 변경됨</span>
+                    </div>`);
+                } else {
+                    if (indicator) indicator.style.display = 'none';
+                }
+            });
+            
+            // 변경 사항 요약 표시/숨김
+            const summaryEl = document.getElementById('changesSummary');
+            const changesListEl = document.getElementById('changesList');
+            
+            if (hasChanges) {
+                summaryEl.style.display = 'block';
+                changesListEl.innerHTML = changesList.join('');
+            } else {
+                summaryEl.style.display = 'none';
+            }
+            
+            return hasChanges;
+        }
+        
+        // 입력 필드 변경 감지 리스너
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.addEventListener('input', checkChanges);
+        });
+        
+        // 폼 초기화
+        function resetForm() {
+            if (confirm('모든 변경 사항을 취소하고 원래 값으로 되돌리시겠습니까?')) {
+                document.getElementById('name').value = originalValues.name;
+                document.getElementById('description').value = originalValues.description || '';
+                document.getElementById('price').value = originalValues.price;
+                document.getElementById('stock').value = originalValues.stock;
+                checkChanges();
+            }
+        }
+        
+        // 폼 제출 처리
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!checkChanges()) {
+                alert('변경된 내용이 없습니다.');
+                return false;
+            }
+            
+            if (confirm('상품 정보를 수정하시겠습니까?')) {
+                // 로딩 표시
+                const btnText = document.getElementById('btnText');
+                const btnSpinner = document.getElementById('btnSpinner');
+                const submitBtn = document.getElementById('submitBtn');
+                
+                btnText.style.display = 'none';
+                btnSpinner.style.display = 'inline-block';
+                submitBtn.disabled = true;
+                
+                this.submit();
+            }
+        });
+        
+        // 숫자 입력 필드 검증
+        document.getElementById('price').addEventListener('input', function(e) {
+            if (e.target.value < 0) e.target.value = 0;
+            if (e.target.value > 100000000) e.target.value = 100000000;
+        });
+        
+        document.getElementById('stock').addEventListener('input', function(e) {
+            if (e.target.value < 0) e.target.value = 0;
+            if (e.target.value > 999999) e.target.value = 999999;
+        });
+        
+        // 페이지 로드 시 초기 체크
+        window.addEventListener('DOMContentLoaded', checkChanges);
+    </script>
+</body>
+</html>

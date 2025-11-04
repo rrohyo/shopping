@@ -2,6 +2,7 @@ package com.shopping.controller;
 
 import com.shopping.entity.Product;
 import com.shopping.service.ProductService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,7 +28,7 @@ public class ProductController {
         }
 
         model.addAttribute("products", products);
-        model.addAttribute("searchKeyword", name);
+        model.addAttribute("name", name);
         return "product/list";
     }
 
@@ -39,16 +40,21 @@ public class ProductController {
 
 
     @PostMapping("/create")
-    public String create(@ModelAttribute Product product) {
+    public String create(HttpSession session, @ModelAttribute Product product) {
+        Long memberId = (Long) session.getAttribute("LOGIN_MEMBER_ID");
+        if (memberId == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
         productService.create(
-                product.getMemberId(),
+                memberId,
                 product.getName(),
+                product.getDescription(),
                 product.getPrice(),
                 product.getStock()
         );
-        return "redirect:/product/list";
+        return "redirect:/home";
     }
-    @GetMapping("/{id}")
+    @GetMapping("/detail/{id}")
     public String detail(@PathVariable Long id, Model model) {
         Product p = productService.findById(id);
         model.addAttribute("product", p);
@@ -59,6 +65,7 @@ public class ProductController {
                          @ModelAttribute Product updatedProduct) {
         productService.update(id,
                 updatedProduct.getName(),
+                updatedProduct.getDescription(),
                 updatedProduct.getPrice(),
                 updatedProduct.getStock());
         return "redirect:/product/" + id;

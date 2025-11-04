@@ -14,11 +14,12 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
     @Transactional
-    public Product create(Long memberId, String name, int price, int stock) {
+    public Product create(Long memberId, String name,String description, int price, int stock) {
         Product p = Product.builder()
                 .memberId(memberId)
                 .name(name)
                 .price(price)
+                .description(description)
                 .stock(stock)
                 .regDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
@@ -39,9 +40,10 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
     }
     @Transactional
-    public Product update(Long id, String name, int price, int stock) {
+    public Product update(Long id, String name,String description, int price, int stock) {
         Product p = findById(id);
         p.setName(name);
+        p.setDescription(description);
         p.setPrice(price);
         p.setStock(stock);
         p.setUpdateDate(LocalDateTime.now());

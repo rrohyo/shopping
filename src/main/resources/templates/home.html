@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상품 리스트 - 미리보기</title>
+    <title>MYSHOP - SHOPPING</title>
     <style>
         * {
             margin: 0;
@@ -24,6 +24,16 @@
             position: sticky;
             top: 0;
             z-index: 100;
+        }
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
         }
 
         .header-container {
@@ -97,6 +107,115 @@
             color: #7f8c8d;
             margin-bottom: 40px;
         }
+
+        /* 액션 바 */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .page-header {
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 필터 및 정렬 바 */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-search {
+            padding: 8px 20px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-search:hover {
+            background-color: #764ba2;
+        }
+
+        .product-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+        }
+
 
         /* 상품 그리드 레이아웃 */
         .product-grid {
@@ -286,18 +405,51 @@
             <a href="/home" class="logo">
                 MyShop
             </a>
-            
+
             <!-- 네비게이션 메뉴 -->
             <nav>
-                <a href="/product" class="active">상품</a>
                 <a href="/about">소개</a>
                 <a href="/contact">문의</a>
+                <a href="/mypage" th:href="@{/mypage}">마이페이지</a>
             </nav>
+            <div class="user-info" sec:authorize="isAuthenticated()">
+                <span class="user-email" sec:authentication="principal.username"></span>
+                <a href="/login" th:href="@{/login}" class="btn-logout">로그아웃</a>
+            </div>
         </div>
     </header>
 
     <!-- 메인 컨텐츠 -->
     <main class="main-container">
+
+        <!-- 액션 바 -->
+        <div class="action-bar">
+            <div class="page-header">
+                <h1 class="page-title">상품 목록</h1>
+                <p class="page-subtitle">
+                    <span th:text="${'총 ' + (products != null ? products.size() : 0) + '개의 상품'}"></span>
+                </p>
+            </div>
+            <div class="action-buttons">
+                <a href="/product/create" th:href="@{/product/create}" class="btn-primary">
+                    <span>➕</span> 상품 등록
+                </a>
+            </div>
+        </div>
+
+        <!-- 필터/검색 바 -->
+        <div class="filter-bar">
+            <form class="search-box" th:action="@{/product/list}" method="get">
+                <input type="text" name="name" class="search-input"
+                       placeholder="상품명으로 검색..."
+                       th:value="${name}">
+                <button type="submit" class="btn-search">검색</button>
+            </form>
+            <div class="product-stats">
+                <span>전체 상품: <strong th:text="${products != null ? products.size() : 0}"></strong>개</span>
+            </div>
+        </div>
+
         <!-- 페이지 타이틀 -->
         <h1 class="page-title">전체 상품</h1>
         <p class="page-subtitle">최고 품질의 상품들을 만나보세요</p>
@@ -305,22 +457,20 @@
         <!-- 상품 리스트 그리드 -->
         <div class="product-grid">
             <!-- 상품 1 -->
-            <div class="product-card">
+            <div class="product-card" th:each="product : ${products}">
                 <div class="product-image-wrapper">
-                    <img class="product-image" 
-                         src="https://via.placeholder.com/280x250/4a90e2/fff?text=Headphones" 
-                         alt="프리미엄 무선 헤드폰">
+                    <img class="product-image"
+                         src="https://via.placeholder.com/280x250/4a90e2/fff?text=Headphones">
                     <span class="product-badge badge-new">NEW</span>
-                    <span class="product-badge" style="top: 40px;">20%</span>
+                    <span class="product-badge" style="top: 40px;">0%</span>
                 </div>
                 <div class="product-info">
-                    <h3 class="product-name">프리미엄 무선 헤드폰</h3>
-                    <p class="product-description">
-                        최고급 노이즈 캔슬링 기능과 뛰어난 음질을 제공하는 프리미엄 헤드폰입니다. 30시간 연속 재생 가능.
+                    <h3 class="product-name" th:text="${product.name}">상품명</h3>
+                    <p class="product-description"
+                        th:text="${product.description != null ? product.description : '설명 없음'}">
                     </p>
                     <div class="product-price">
-                        <span class="product-original-price">299,000원</span>
-                        <span>239,200원</span>
+                        <span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
                     </div>
                     <div class="product-meta">
                         <div class="product-rating">
@@ -332,11 +482,11 @@
                 </div>
             </div>
 
-            <!-- 상품 2 -->
+            <!--  상품 2
             <div class="product-card">
                 <div class="product-image-wrapper">
-                    <img class="product-image" 
-                         src="https://via.placeholder.com/280x250/7f8c8d/fff?text=Smart+Watch" 
+                    <img class="product-image"
+                         src="https://via.placeholder.com/280x250/7f8c8d/fff?text=Smart+Watch"
                          alt="스마트 워치 프로">
                     <span class="product-badge badge-new">NEW</span>
                 </div>
@@ -358,11 +508,11 @@
                 </div>
             </div>
 
-            <!-- 상품 3 -->
+            상품 3
             <div class="product-card">
                 <div class="product-image-wrapper">
-                    <img class="product-image" 
-                         src="https://via.placeholder.com/280x250/e74c3c/fff?text=Running+Shoes" 
+                    <img class="product-image"
+                         src="https://via.placeholder.com/280x250/e74c3c/fff?text=Running+Shoes"
                          alt="울트라 러닝화">
                     <span class="product-badge">15%</span>
                 </div>
@@ -385,11 +535,11 @@
                 </div>
             </div>
 
-            <!-- 상품 4 -->
+            상품 4
             <div class="product-card">
                 <div class="product-image-wrapper">
-                    <img class="product-image" 
-                         src="https://via.placeholder.com/280x250/27ae60/fff?text=Yoga+Mat" 
+                    <img class="product-image"
+                         src="https://via.placeholder.com/280x250/27ae60/fff?text=Yoga+Mat"
                          alt="프리미엄 요가 매트">
                 </div>
                 <div class="product-info">
@@ -410,11 +560,11 @@
                 </div>
             </div>
 
-            <!-- 상품 5 -->
+             상품 5
             <div class="product-card">
                 <div class="product-image-wrapper">
-                    <img class="product-image" 
-                         src="https://via.placeholder.com/280x250/f39c12/fff?text=Charger" 
+                    <img class="product-image"
+                         src="https://via.placeholder.com/280x250/f39c12/fff?text=Charger"
                          alt="무선 충전 패드">
                     <span class="product-badge">30%</span>
                 </div>
@@ -437,11 +587,11 @@
                 </div>
             </div>
 
-            <!-- 상품 6 -->
+            상품 6
             <div class="product-card">
                 <div class="product-image-wrapper">
-                    <img class="product-image" 
-                         src="https://via.placeholder.com/280x250/9b59b6/fff?text=Speaker" 
+                    <img class="product-image"
+                         src="https://via.placeholder.com/280x250/9b59b6/fff?text=Speaker"
                          alt="블루투스 스피커">
                     <span class="product-badge badge-new">NEW</span>
                 </div>
@@ -464,7 +614,7 @@
             </div>
         </div>
     </main>
-
+-->
     <!-- JavaScript (선택사항) -->
     <script>
         // 장바구니 버튼 클릭 이벤트
@@ -482,5 +632,5 @@
             });
         });
     </script>
-</body>
+            </body>
 </html>

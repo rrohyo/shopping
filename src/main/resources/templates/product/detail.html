@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
+    <title th:text="${product.name + ' - 상품 상세'}">상품 상세</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            padding: 15px 0;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        /* 브레드크럼 */
+        .breadcrumb {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb-list a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .breadcrumb-list a:hover {
+            text-decoration: underline;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        /* 상품 상세 섹션 */
+        .product-detail {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .product-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        /* 이미지 영역 */
+        .product-images {
+            position: relative;
+        }
+
+        .main-image {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            color: white;
+        }
+
+        .image-thumbnails {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            background: #f5f7fa;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #667eea;
+        }
+
+        /* 상품 정보 영역 */
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .product-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+
+        .product-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stars {
+            color: #f39c12;
+            font-size: 18px;
+        }
+
+        .rating-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .product-code {
+            font-size: 14px;
+            color: #95a5a6;
+        }
+
+        /* 가격 영역 */
+        .price-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .price-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .price-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .price-info {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        /* 재고 정보 */
+        .stock-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .stock-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stock-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stock-available {
+            background: #d4f4dd;
+            color: #27ae60;
+        }
+
+        .stock-low {
+            background: #fff3cd;
+            color: #f39c12;
+        }
+
+        .stock-out {
+            background: #fee;
+            color: #e74c3c;
+        }
+
+        .stock-count {
+            margin-left: auto;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 판매자 정보 */
+        .seller-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .seller-info {
+            flex: 1;
+        }
+
+        .seller-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .seller-email {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .seller-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 액션 버튼 */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #e67e22;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        /* 탭 메뉴 */
+        .tabs {
+            margin-top: 40px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .tab-menu {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 20px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            padding: 40px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* 상품 설명 */
+        .description-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .description-content h3 {
+            font-size: 20px;
+            margin: 30px 0 15px;
+            color: #2c3e50;
+        }
+
+        .description-content ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .description-content li {
+            margin: 8px 0;
+        }
+
+        /* 상품 정보 테이블 */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table tr {
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-table th,
+        .info-table td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        .info-table th {
+            width: 200px;
+            background: #f8f9fa;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-table td {
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* 관련 상품 */
+        .related-products {
+            margin-top: 60px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .related-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .related-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+        }
+
+        .related-info {
+            padding: 15px;
+        }
+
+        .related-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .related-price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .product-main {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .tab-menu {
+                flex-direction: column;
+            }
+            
+            .info-table th {
+                width: 120px;
+            }
+            
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/home" th:href="@{/home}" class="logo">🛍️ MyShop</a>
+            <nav class="nav-links">
+                <a href="/" th:href="@{/home}">홈</a>
+                <a href="/product/list" th:href="@{/product/list}">상품목록</a>
+                <a href="/product/create" th:href="@{/product/create}">상품등록</a>
+                <span sec:authorize="isAuthenticated()" sec:authentication="principal.username"></span>
+                <a href="/logout" th:href="@{/logout}" sec:authorize="isAuthenticated()">로그아웃</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 브레드크럼 -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-list">
+            <a href="/home" th:href="@{/home}">홈</a>
+            <span>></span>
+            <a href="/product/list" th:href="@{/product/list}">상품목록</a>
+            <span>></span>
+            <span th:text="${product.name}">상품명</span>
+        </div>
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <div class="product-detail">
+            <div class="product-main">
+                <!-- 이미지 영역 -->
+                <div class="product-images">
+                    <div class="main-image">📦</div>
+                    <div class="image-thumbnails">
+                        <div class="thumbnail active">📦</div>
+                        <div class="thumbnail">📷</div>
+                        <div class="thumbnail">🎁</div>
+                        <div class="thumbnail">📸</div>
+                    </div>
+                </div>
+
+                <!-- 상품 정보 영역 -->
+                <div class="product-info">
+                    <h1 class="product-title" th:text="${product.name}">상품명</h1>
+                    
+                    <div class="product-meta">
+                        <div class="rating">
+                            <span class="stars">★★★★☆</span>
+                            <span class="rating-text">4.5 (234 리뷰)</span>
+                        </div>
+                        <span class="product-code">상품코드: #<span th:text="${product.id}">1</span></span>
+                    </div>
+
+                    <!-- 가격 -->
+                    <div class="price-section">
+                        <div class="price-label">판매가격</div>
+                        <div class="price-value" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+                        <div class="price-info">부가세 포함</div>
+                    </div>
+
+                    <!-- 재고 상태 -->
+                    <div class="stock-section">
+                        <span class="stock-label">재고 상태:</span>
+                        <span class="stock-status"
+                              th:classappend="${product.stock > 10 ? 'stock-available' : 
+                                              (product.stock > 0 ? 'stock-low' : 'stock-out')}"
+                              th:text="${product.stock > 10 ? '재고 충분' : 
+                                        (product.stock > 0 ? '재고 부족' : '품절')}">재고 상태</span>
+                        <span class="stock-count">남은 수량: <strong th:text="${product.stock}">0</strong>개</span>
+                    </div>
+
+                    <!-- 판매자 정보 -->
+                    <div class="seller-section">
+                        <div class="seller-avatar" th:text="${#strings.substring(product.memberId != null ? product.memberId : 'U', 0, 1)}">S</div>
+                        <div class="seller-info">
+                            <div class="seller-name" th:text="${product.memberId != null ? product.memberId : '판매자 ' + product.memberId}">판매자</div>
+                            <div class="seller-rating">
+                                <span style="color: #f39c12;">★</span> 4.8 판매자 평점
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 액션 버튼 -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" th:if="${product.stock > 0}">
+                            🛒 장바구니 담기
+                        </button>
+                        <button class="btn btn-secondary" th:if="${product.stock > 0}">
+                            💳 바로 구매
+                        </button>
+                        <button class="btn btn-secondary" th:if="${product.stock == 0}" disabled>
+                            품절
+                        </button>
+                    </div>
+
+                    <!-- 소유자 전용 버튼 -->
+                    <div class="action-buttons" th:if="${product.memberId}">
+                        <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-edit">
+                            ✏️ 상품 수정
+                        </a>
+                        <button class="btn btn-delete" th:onclick="'deleteProduct(' + ${product.id} + ')'">
+                            🗑️ 상품 삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <div class="tabs">
+                <div class="tab-menu">
+                    <button class="tab-button active" onclick="showTab('description')">상품 설명</button>
+                    <button class="tab-button" onclick="showTab('info')">상품 정보</button>
+                    <button class="tab-button" onclick="showTab('reviews')">리뷰 (234)</button>
+                    <button class="tab-button" onclick="showTab('qna')">Q&A (45)</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- 상품 설명 탭 -->
+                    <div id="description" class="tab-panel active">
+                        <div class="description-content">
+                            <p th:if="${product.description != null}" th:text="${product.description}">
+                                상품 설명이 여기에 표시됩니다.
+                            </p>
+                            <p th:if="${product.description == null or product.description.isEmpty()}">
+                                상품 설명이 아직 등록되지 않았습니다.
+                            </p>
+                            
+                            <h3>제품 특징</h3>
+                            <ul>
+                                <li>고품질 소재 사용</li>
+                                <li>우수한 내구성</li>
+                                <li>편리한 사용성</li>
+                                <li>합리적인 가격</li>
+                            </ul>
+                            
+                            <h3>주의사항</h3>
+                            <ul>
+                                <li>실제 제품의 색상은 모니터 설정에 따라 다를 수 있습니다</li>
+                                <li>제품 개선을 위해 사양이 변경될 수 있습니다</li>
+                                <li>구매 전 상품 정보를 확인해주세요</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 상품 정보 탭 -->
+                    <div id="info" class="tab-panel">
+                        <table class="info-table">
+                            <tr>
+                                <th>상품 번호</th>
+                                <td th:text="${product.id}">1</td>
+                            </tr>
+                            <tr>
+                                <th>상품명</th>
+                                <td th:text="${product.name}">상품명</td>
+                            </tr>
+                            <tr>
+                                <th>판매 가격</th>
+                                <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</td>
+                            </tr>
+                            <tr>
+                                <th>재고 수량</th>
+                                <td th:text="${product.stock + '개'}">0개</td>
+                            </tr>
+                            <tr>
+                                <th>등록일</th>
+                                <td th:text="${#temporals.format(product.regDate, 'yyyy년 MM월 dd일 HH:mm')}">2024-01-01</td>
+                            </tr>
+                            <tr>
+                                <th>최종 수정일</th>
+                                <td th:text="${#temporals.format(product.updateDate, 'yyyy년 MM월 dd일 HH:mm')}">2024-01-01</td>
+                            </tr>
+                            <tr>
+                                <th>판매자</th>
+                                <td th:text="${product.memberId != null ? product.memberId : '판매자 ID: ' + product.memberId}">판매자</td>
+                            </tr>
+                            <tr>
+                                <th>배송 방법</th>
+                                <td>택배 배송</td>
+                            </tr>
+                            <tr>
+                                <th>배송비</th>
+                                <td>3,000원 (50,000원 이상 무료)</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- 리뷰 탭 -->
+                    <div id="reviews" class="tab-panel">
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">💬</div>
+                            <p>아직 등록된 리뷰가 없습니다.</p>
+                            <p style="margin-top: 10px;">첫 번째 리뷰를 작성해주세요!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Q&A 탭 -->
+                    <div id="qna" class="tab-panel">
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">❓</div>
+                            <p>아직 등록된 질문이 없습니다.</p>
+                            <p style="margin-top: 10px;">궁금한 점이 있으시면 질문해주세요!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관련 상품 -->
+        <div class="related-products" th:if="${relatedProducts != null and !relatedProducts.isEmpty()}">
+            <h2 class="section-title">관련 상품</h2>
+            <div class="related-grid">
+                <div class="related-card" th:each="related : ${relatedProducts}">
+                    <a th:href="@{/product/detail/{id}(id=${related.id})}" style="text-decoration: none; color: inherit;">
+                        <div class="related-image">📦</div>
+                        <div class="related-info">
+                            <div class="related-name" th:text="${related.name}">상품명</div>
+                            <div class="related-price" th:text="${#numbers.formatDecimal(related.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // 탭 전환 함수
+        function showTab(tabName) {
+            // 모든 탭 패널과 버튼 비활성화
+            const panels = document.querySelectorAll('.tab-panel');
+            const buttons = document.querySelectorAll('.tab-button');
+            
+            panels.forEach(panel => panel.classList.remove('active'));
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // 선택된 탭 활성화
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // 상품 삭제 함수
+        function deleteProduct(productId) {
+            if (confirm('정말로 이 상품을 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.')) {
+                const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+                const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+                
+                fetch('/product/delete/' + productId, {
+                    method: 'DELETE',
+                    headers: {
+                        [header]: token
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('상품이 삭제되었습니다.');
+                        window.location.href = '/product/list';
+                    } else {
+                        alert('삭제 중 오류가 발생했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                });
+            }
+        }
+        
+        // 이미지 썸네일 클릭 이벤트
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

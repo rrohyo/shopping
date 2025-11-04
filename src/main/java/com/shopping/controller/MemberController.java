@@ -48,6 +48,7 @@ public class MemberController {
             model.addAttribute("successMessage", "로그인 성공!!!!!");
             session.setAttribute("LOGIN_MEMBER_NAME", m.getName());
             session.setAttribute("LOGIN_MEMBER_ROLE", m.getRoles());
+            session.setAttribute("LOGIN_MEMBER_ID", m.getId());
             return "redirect:/home";
         } catch (Exception e) {
             System.out.println("exception!!!!!!!!!");

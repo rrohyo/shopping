@@ -19,6 +19,9 @@ public class Product {
 
     private String name;
 
+    @Column(columnDefinition = "text")
+    private String description;
+
     private int price;
 
     private int stock;
