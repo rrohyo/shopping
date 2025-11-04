@@ -46,10 +46,10 @@ public class MemberController {
             System.out.println("controller m === " + m);
 
             model.addAttribute("successMessage", "로그인 성공!!!!!");
-//            session.setAttribute("LOGIN_MEMBER_NAME", m.getName());
-//            session.setAttribute("LOGIN_MEMBER_ROLE", m.getRoles());
+            session.setAttribute("LOGIN_MEMBER_NAME", m.getName());
+            session.setAttribute("LOGIN_MEMBER_ROLE", m.getRoles());
 //            return "redirect:/";
-            return "login";
+            return "redirect:/home";
         } catch (Exception e) {
             System.out.println("exception!!!!!!!!!");
             model.addAttribute("errorMessage", e.getMessage());// 화면에 에러 출력

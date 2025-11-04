@@ -17,4 +17,10 @@ public class HomeController {
     public String rootRedirect() {
         return "redirect:/login";
     }
+
+    @GetMapping("/home")
+    public String home(HttpSession session, Model model) {
+        model.addAttribute("memberName", session.getAttribute("LOGIN_MEMBER_NAME"));
+        return "home";
+    }
 }
