@@ -512,7 +512,7 @@
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-label">전체 상품</div>
-                <div class="stat-value" th:text="${totalProducts != null ? totalProducts : 0}">0</div>
+                <div class="stat-value" th:text="${totalProduct != null ? totalProduct : 0}">0</div>
                 <div class="stat-change stat-up">↑ 12% 이번 달</div>
             </div>
             <div class="stat-card">
@@ -587,7 +587,7 @@
         </div>
 
         <!-- 상품 테이블 -->
-        <div class="product-table" th:if="${products != null and !products.isEmpty()}">
+        <div class="product-table" th:if="${product != null and !product.isEmpty()}">
             <table>
                 <thead>
                     <tr>
@@ -600,7 +600,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="product : ${products}">
+                    <tr th:each="product : ${product}">
                         <td>
                             <div class="product-info">
                                 <div class="product-image">📦</div>
@@ -648,7 +648,7 @@
         </div>
 
         <!-- 빈 상태 -->
-        <div class="empty-state" th:if="${products == null or products.isEmpty()}">
+        <div class="empty-state" th:if="${product == null or product.isEmpty()}">
             <div class="empty-icon">📦</div>
             <h2 class="empty-title">상품이 없습니다</h2>
             <p class="empty-subtitle">검색 조건에 맞는 상품이 없습니다.</p>
@@ -657,21 +657,29 @@
             </a>
         </div>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination" th:if="${totalPages > 1}">
-            <a href="#" class="page-link" th:classappend="${currentPage == 0} ? 'disabled' : ''"
-               th:href="@{/product/list(page=${currentPage - 1}, keyword=${keyword})}">이전</a>
-            
-            <span th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
-                <a href="#" class="page-link" 
-                   th:classappend="${pageNum == currentPage} ? 'active' : ''"
-                   th:href="@{/product/list(page=${pageNum}, keyword=${keyword})}"
-                   th:text="${pageNum + 1}">1</a>
-            </span>
-            
-            <a href="#" class="page-link" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''"
-               th:href="@{/product/list(page=${currentPage + 1}, keyword=${keyword})}">다음</a>
-        </div>
+    <div class="pagination">
+        <a class="page-link"
+           th:classappend="${currentPage == 0} ? 'disabled' : ''"
+           th:attr="onclick=${currentPage == 0} ? 'return false;' : null"
+           th:href="@{/product/list(page=${currentPage - 1}, name=${name}, sort=${sort})}">
+            이전
+        </a>
+
+        <span th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
+    <a class="page-link"
+       th:classappend="${pageNum == currentPage} ? 'active' : ''"
+       th:href="@{/product/list(page=${pageNum}, name=${name}, sort=${sort})}"
+       th:text="${pageNum + 1}">
+       1
+    </a>
+  </span>
+
+        <a class="page-link"
+           th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''"
+           th:attr="onclick=${currentPage == totalPages - 1} ? 'return false;' : null"
+           th:href="@{/product/list(page=${currentPage + 1}, name=${name}, sort=${sort})}">
+            다음
+        </a>
     </div>
 
     <script th:inline="javascript">

@@ -4,9 +4,11 @@ import com.shopping.entity.Product;
 import com.shopping.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -27,12 +29,16 @@ public class HomeController {
     }
 
     @GetMapping("/home")
-    public String home(HttpSession session, Model model) {
+    public String home(@RequestParam(required = false) String name,
+                       @RequestParam(defaultValue = "0") int page,
+                       Model model) {
 
-        List<Product> product = productService.findAll();
+        Page<Product> result = productService.getList(name, page, 9, "latest");
 
-        model.addAttribute("product", product);
-
+        model.addAttribute("product", result.getContent());
+        model.addAttribute("currentPage", result.getNumber());
+        model.addAttribute("totalPages", result.getTotalPages());
+        model.addAttribute("name", name);
 
         return "home";
     }

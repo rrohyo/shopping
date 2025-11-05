@@ -161,6 +161,40 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
+        /* 페이지네이션 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 30px;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .page-link:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .page-link.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         /* 필터 및 정렬 바 */
         .filter-bar {
@@ -496,6 +530,30 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="pagination">
+            <a class="page-link"
+               th:classappend="${currentPage == 0} ? 'disabled' : ''"
+               th:attr="onclick=${currentPage == 0} ? 'return false;' : null"
+               th:href="@{/product/list(page=${currentPage - 1}, name=${name}, sort=${sort})}">
+                이전
+            </a>
+
+            <span th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
+    <a class="page-link"
+       th:classappend="${pageNum == currentPage} ? 'active' : ''"
+       th:href="@{/product/list(page=${pageNum}, name=${name}, sort=${sort})}"
+       th:text="${pageNum + 1}">
+       1
+    </a>
+  </span>
+
+            <a class="page-link"
+               th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''"
+               th:attr="onclick=${currentPage == totalPages - 1} ? 'return false;' : null"
+               th:href="@{/product/list(page=${currentPage + 1}, name=${name}, sort=${sort})}">
+                다음
+            </a>
         </div>
 
             <!--  상품 2

@@ -4,6 +4,7 @@ import com.shopping.entity.Product;
 import com.shopping.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,19 +17,26 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
     @GetMapping("/list")
-    public String list(@RequestParam(required = false) String name, Model model) {
-        List<Product> products;
-        if (name != null && !name.isEmpty()) {
-            products = productService.findByName(name);
-            if (products.isEmpty()) {
-                model.addAttribute("message", "검색 결과가 없습니다.");
-            }
-        } else {
-            products = productService.findAll();
+    public String list(@RequestParam(required = false) String name,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "latest") String sort,
+                       Model model) {
+
+        page = Math.max(page, 0);
+
+        Page<Product> pageResult = productService.getList(name, page, size, sort);
+
+        if (pageResult.getTotalPages() > 0 && page >= pageResult.getTotalPages()) {
+            int last = pageResult.getTotalPages() - 1;
+            pageResult = productService.getList(name, last, size, sort);
         }
 
-        model.addAttribute("products", products);
+        model.addAttribute("product", pageResult.getContent());
+        model.addAttribute("currentPage", pageResult.getNumber());
+        model.addAttribute("totalPages", pageResult.getTotalPages());
         model.addAttribute("name", name);
+        model.addAttribute("sort", sort);
         return "product/list";
     }
 

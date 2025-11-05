@@ -116,6 +116,6 @@ public class MemberController {
         } catch (RuntimeException e) {
             model.addAttribute("errorMessage", "비밀번호 설정 오류입니다.");
         }
-        return "mypage";
+        return "redirect:/login";
     }
 }
