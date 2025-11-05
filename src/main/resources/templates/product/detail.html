@@ -585,7 +585,6 @@
                 <a href="/product/create" th:href="@{/product/create}">상품등록</a>
                 <div class="user-info" sec:authorize="isAuthenticated()">
                     <span class="user-email" sec:authentication="principal.username"></span>
-
                     <form th:action="@{/member/logout}" method="post" style="display:inline;">
                         <button type="submit" class="btn-logout">로그아웃</button>
                     </form>

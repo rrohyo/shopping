@@ -494,7 +494,7 @@
             <div class="header-nav">
                 <a href="/home" th:href="@{/home}">홈</a>
                 <a href="/product/list" th:href="@{/product/list}">상품목록</a>
-                <a href="/mypage" th:href="@{/mypage}">마이페이지</a>
+                <a href="/member/mypage" th:href="@{/member/mypage}">마이페이지</a>
                 <div class="user-info" sec:authorize="isAuthenticated()">
                     <span class="user-email" sec:authentication="principal.username"></span>
 

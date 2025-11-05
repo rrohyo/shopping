@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
+    <title>마이페이지</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: #667eea;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* 프로필 섹션 */
+        .profile-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            color: white;
+            position: relative;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #667eea;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .profile-details h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .profile-details p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 탭 메뉴 */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 20px 25px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-button:hover {
+            background: white;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .tab-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+
+        /* 탭 컨텐츠 */
+        .tab-content {
+            padding: 40px;
+            background: white;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* 정보 카드 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .info-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: #667eea;
+        }
+
+        .info-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .info-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #333;
+            text-align: right;
+        }
+
+        /* 주문 내역 스타일 */
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .order-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-date {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .order-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-paid {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-shipping {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-body {
+            padding: 20px;
+        }
+
+        .order-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-item-image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .order-item-info {
+            flex: 1;
+        }
+
+        .order-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .order-item-details {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .order-item-price {
+            text-align: right;
+        }
+
+        .order-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .order-quantity {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .order-footer {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-total {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 상품 관리 테이블 */
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .product-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .product-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+        }
+
+        .product-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .product-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-thumb {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .product-name-cell {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* 판매 내역 */
+        .sales-card {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sales-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sales-date {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .sales-amount {
+            font-size: 18px;
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #dee2e6;
+            color: #495057;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .empty-subtitle {
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        /* 폼 스타일 */
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f3f5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .tabs {
+                overflow-x: scroll;
+            }
+
+            .profile-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .product-table {
+                font-size: 12px;
+            }
+
+            .product-table th,
+            .product-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/home" th:href="@{/home}" class="logo">
+                🛍️ MyShop
+            </a>
+            <nav class="nav-menu">
+                <a href="/home" th:href="@{/home}">홈</a>
+                <a href="/product/list" th:href="@{/product/list}">상품목록</a>
+                <a href="/product/create" th:href="@{/product/create}">상품등록</a>
+                <a th:href="@{/member/mypage}" class="active">마이페이지</a>
+                <div class="user-info" sec:authorize="isAuthenticated()">
+                    <span class="user-email" sec:authentication="principal.username"></span>
+                    <form th:action="@{/member/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="btn-logout">로그아웃</button>
+                    </form>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 프로필 섹션 -->
+        <div class="profile-section">
+            <!-- 프로필 헤더 -->
+            <div class="profile-header">
+                <div class="profile-info">
+                    <div class="profile-avatar" th:text="${#strings.substring(member.name, 0, 1)}">U</div>
+                    <div class="profile-details">
+                        <h1 th:text="${member.name}">사용자 이름</h1>
+                        <p th:text="${member.email}">user@email.com</p>
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" th:text="${orderCount != null ? orderCount : 0}">0</div>
+                                <div class="stat-label">구매 건수</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" th:text="${productCount != null ? productCount : 0}">0</div>
+                                <div class="stat-label">판매 상품</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" th:text="${salesCount != null ? salesCount : 0}">0</div>
+                                <div class="stat-label">판매 건수</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" th:text="${#temporals.format(member.regDate, 'yyyy.MM')}">2024.01</div>
+                                <div class="stat-label">가입</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('profile')">
+                    👤 내 정보
+                </button>
+                <button class="tab-button" onclick="showTab('orders')">
+                    🛒 구매 내역
+                    <span class="tab-badge" th:if="${orderCount > 0}" th:text="${orderCount}">0</span>
+                </button>
+                <button class="tab-button" onclick="showTab('product')">
+                    📦 판매 상품
+                    <span class="tab-badge" th:if="${productCount > 0}" th:text="${productCount}">0</span>
+                </button>
+                <button class="tab-button" onclick="showTab('sales')">
+                    💰 판매 내역
+                    <span class="tab-badge" th:if="${salesCount > 0}" th:text="${salesCount}">0</span>
+                </button>
+                <button class="tab-button" onclick="showTab('edit', event)">
+                    ✏️ 정보 수정
+                </button>
+                <button class="tab-button" onclick="showTab('settings')">
+                    ⚙️ 설정
+                </button>
+            </div>
+
+            <!-- 탭 컨텐츠 -->
+            <div class="tab-content">
+                <!-- 내 정보 탭 -->
+                <div id="profile" class="tab-panel active">
+                    <div class="info-grid">
+                        <!-- 기본 정보 카드 -->
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h3 class="info-card-title">
+                                    <span>📋</span> 기본 정보
+                                </h3>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">이름</span>
+                                <span class="info-value" th:text="${member.name}">홍길동</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">이메일</span>
+                                <span class="info-value" th:text="${member.email}">user@email.com</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">전화번호</span>
+                                <span class="info-value" th:text="${member.phoneNumber}">010-0000-0000</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">주소</span>
+                                <span class="info-value" th:text="${member.address}">서울시 강남구</span>
+                            </div>
+                        </div>
+
+                        <!-- 활동 요약 카드 -->
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <h3 class="info-card-title">
+                                    <span>📊</span> 활동 요약
+                                </h3>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">총 구매 금액</span>
+                                <span class="info-value" th:text="${totalPurchaseAmount != null ? #numbers.formatDecimal(totalPurchaseAmount, 0, 'COMMA', 0, 'POINT') + '원' : '0원'}">0원</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">총 판매 금액</span>
+                                <span class="info-value" th:text="${totalSalesAmount != null ? #numbers.formatDecimal(totalSalesAmount, 0, 'COMMA', 0, 'POINT') + '원' : '0원'}">0원</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">가입일</span>
+                                <span class="info-value" th:text="${#temporals.format(member.regDate, 'yyyy년 MM월 dd일')}">2024년 01월 01일</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">마지막 활동</span>
+                                <span class="info-value" th:text="${#temporals.format(member.updateDate, 'yyyy.MM.dd HH:mm')}">2024.01.01</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 구매 내역 탭 -->
+                <div id="orders" class="tab-panel">
+                    <div class="form-section">
+                        <h3 class="form-title">구매 내역</h3>
+                    </div>
+                    
+                    <div class="order-list" th:if="${orders != null and !orders.isEmpty()}">
+                        <div class="order-card" th:each="order : ${orders}">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-number">주문번호: <span th:text="${order.orderNumber}">20240101-001</span></div>
+                                    <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy년 MM월 dd일 HH:mm')}">2024년 01월 01일</div>
+                                </div>
+                                <div class="order-status"
+                                     th:classappend="${'status-' + #strings.toLowerCase(order.status)}"
+                                     th:text="${order.statusDesc}">배송완료</div>
+                            </div>
+                            
+                            <div class="order-body">
+                                <div class="order-items">
+                                    <div class="order-item" th:each="item : ${order.orderItems}">
+                                        <div class="order-item-image">📦</div>
+                                        <div class="order-item-info">
+                                            <div class="order-item-name" th:text="${item.productName}">상품명</div>
+                                            <div class="order-item-details">
+                                                판매자: <span th:text="${item.sellerName}">판매자명</span> | 
+                                                상태: <span th:text="${item.statusDesc}">배송완료</span>
+                                            </div>
+                                        </div>
+                                        <div class="order-item-price">
+                                            <div class="order-price" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+                                            <div class="order-quantity">수량: <span th:text="${item.quantity}">1</span>개</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="order-footer">
+                                <div class="order-total">
+                                    총 결제금액: <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn btn-sm btn-outline">상세보기</button>
+                                    <button class="btn btn-sm btn-primary" th:if="${order.status == 'DELIVERED'}">리뷰작성</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="empty-state" th:if="${orders == null or orders.isEmpty()}">
+                        <div class="empty-icon">🛒</div>
+                        <div class="empty-title">구매 내역이 없습니다</div>
+                        <div class="empty-subtitle">마음에 드는 상품을 구매해보세요!</div>
+                        <a href="/product/list" th:href="@{/product/list}" class="btn btn-primary">
+                            상품 둘러보기
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 판매 상품 탭 -->
+                <div id="product" class="tab-panel">
+                    <div class="form-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 class="form-title">내 판매 상품 (<span th:text="${product != null ? product.size() : 0}">0</span>)</h3>
+                            <a href="/product/create" th:href="@{/product/create}" class="btn btn-primary btn-sm">
+                                ➕ 새 상품 등록
+                            </a>
+                        </div>
+                    </div>
+
+                    <table class="product-table" th:if="${product != null and !#lists.isEmpty(product)}">
+                        <thead>
+                            <tr>
+                                <th>상품정보</th>
+                                <th>가격</th>
+                                <th>재고</th>
+                                <th>등록일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="product : ${product}">
+                                <td>
+                                    <div class="product-info-cell">
+                                        <div class="product-thumb">📦</div>
+                                        <div class="product-name-cell" th:text="${product.name}">상품명</div>
+                                    </div>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</td>
+                                <td>
+                                    <span th:style="${product.stock == 0 ? 'color: #e74c3c;' : ''}"
+                                          th:text="${product.stock + '개'}">0개</span>
+                                </td>
+                                <td th:text="${#temporals.format(product.regDate, 'yyyy.MM.dd')}">2024.01.01</td>
+                                <td>
+                                    <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-sm btn-secondary">수정</a>
+                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-sm btn-outline">상세</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="empty-state" th:if="${product == null or product.isEmpty()}">
+                        <div class="empty-icon">📦</div>
+                        <div class="empty-title">등록한 상품이 없습니다</div>
+                        <div class="empty-subtitle">첫 상품을 등록하고 판매를 시작하세요!</div>
+                        <a href="/product/create" th:href="@{/product/create}" class="btn btn-primary">
+                            상품 등록하기
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 판매 내역 탭 -->
+                <div id="sales" class="tab-panel">
+                    <div class="form-section">
+                        <h3 class="form-title">판매 내역</h3>
+                    </div>
+                    
+                    <div th:if="${salesOrders != null and !salesOrders.isEmpty()}">
+                        <div class="sales-card" th:each="sale : ${salesOrders}">
+                            <div class="sales-header">
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 5px;">
+                                        <span th:text="${sale.productName}">상품명</span>
+                                    </div>
+                                    <div class="sales-date">
+                                        구매자: <span th:text="${sale.buyerName}">구매자명</span> | 
+                                        <span th:text="${#temporals.format(sale.orderDate, 'yyyy.MM.dd')}">2024.01.01</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="sales-amount" th:text="${#numbers.formatDecimal(sale.amount, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+                                    <div style="text-align: right;">
+                                        <span class="order-status"
+                                              th:classappend="${'status-' + #strings.toLowerCase(sale.status)}"
+                                              th:text="${sale.statusDesc}">배송완료</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="empty-state" th:if="${salesOrders == null or salesOrders.isEmpty()}">
+                        <div class="empty-icon">💰</div>
+                        <div class="empty-title">판매 내역이 없습니다</div>
+                        <div class="empty-subtitle">상품이 판매되면 여기에 표시됩니다</div>
+                    </div>
+                </div>
+
+                <!-- 정보 수정 탭 -->
+                <div id="edit" class="tab-panel">
+                    <form th:action="@{/member/mypage/update}" method="post">
+                        <div class="form-section">
+                            <h3 class="form-title">정보 수정</h3>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="name">이름</label>
+                                    <input type="text" id="name" name="name" th:value="${member.name}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email">이메일 (변경불가)</label>
+                                    <input type="email" id="email" name="email" th:value="${member.email}" disabled>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="phoneNumber">전화번호</label>
+                                    <input type="tel" id="phoneNumber" name="phoneNumber" th:value="${member.phoneNumber}" required>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label for="address">주소</label>
+                                    <input type="text" id="address" name="address" th:value="${member.address}" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">정보 수정</button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <!-- 설정 탭 -->
+                <div id="settings" class="tab-panel">
+                    <div class="form-section">
+                        <h3 class="form-title">비밀번호 변경</h3>
+                        <form th:action="@{/member/mypage/password}" method="post">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="currentPassword">현재 비밀번호</label>
+                                    <input type="password" id="currentPassword" name="currentPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">새 비밀번호</label>
+                                    <input type="password" id="newPassword" name="newPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword">새 비밀번호 확인</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">비밀번호 변경</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        //  탭 전환 함수 수정 (event 인자 명시)
+    function showTab(tabName, event) {
+        const panels = document.querySelectorAll('.tab-panel');
+        const buttons = document.querySelectorAll('.tab-button');
+
+        panels.forEach(panel => panel.classList.remove('active'));
+        buttons.forEach(button => button.classList.remove('active'));
+
+        document.getElementById(tabName).classList.add('active');
+        if (event && event.target) {
+            event.target.classList.add('active');
+        }
+    }
+
+    // URL 파라미터로 탭 지정 시에도 동작
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab) {
+        showTab(tab);
+    }
+    </script>
+</body>
+</html>

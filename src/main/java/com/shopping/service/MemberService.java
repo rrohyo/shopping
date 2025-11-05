@@ -40,4 +40,26 @@ public class MemberService {
         }
         return m;
     }
+    @Transactional(readOnly = true)
+    public Member findById(Long id) {
+        return memberRepository.findById(id).orElseThrow(() -> new RuntimeException("회원이 존재하지 않습니다."));
+    }
+
+    @Transactional
+    public void updateProfile(Long memberId, String name, String phoneNumber, String address) {
+        Member m = memberRepository.findById(memberId).get();
+        if (name != null && !name.isBlank()) m.setName(name.trim());
+        if (phoneNumber != null) m.setPhoneNumber(phoneNumber.trim());
+        if (address != null) m.setAddress(address.trim());
+        m.setUpdateDate(LocalDateTime.now());
+    }
+    @Transactional
+    public void changePassword(Long memberId, String currentPassword, String newPassword) {
+        Member m = memberRepository.findById(memberId).get();
+        if (!m.getPassword().equals(currentPassword)) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        m.setPassword(newPassword);
+        m.setUpdateDate(LocalDateTime.now());
+    }
 }

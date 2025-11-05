@@ -410,11 +410,10 @@
             <nav>
                 <a href="/about">소개</a>
                 <a href="/contact">문의</a>
-                <a href="/mypage" th:href="@{/mypage}">마이페이지</a>
+                <a href="/member/mypage" th:href="@{/member/mypage}">마이페이지</a>
             </nav>
             <div class="user-info" sec:authorize="isAuthenticated()">
                 <span class="user-email" sec:authentication="principal.username"></span>
-
                 <form th:action="@{/member/logout}" method="post" style="display:inline;">
                     <button type="submit" class="btn-logout">로그아웃</button>
                 </form>
@@ -431,7 +430,7 @@
             <div class="page-header">
                 <h1 class="page-title">상품 목록</h1>
                 <p class="page-subtitle">
-                    <span th:text="${'총 ' + (products != null ? products.size() : 0) + '개의 상품'}"></span>
+                    <span th:text="${'총 ' + (product != null ? product.size() : 0) + '개의 상품'}"></span>
                 </p>
             </div>
             <div class="action-buttons">
@@ -450,7 +449,7 @@
                 <button type="submit" class="btn-search">검색</button>
             </form>
             <div class="product-stats">
-                <span>전체 상품: <strong th:text="${products != null ? products.size() : 0}"></strong>개</span>
+                <span>전체 상품: <strong th:text="${product != null ? product.size() : 0}"></strong>개</span>
             </div>
         </div>
 
@@ -460,7 +459,7 @@
 
         <div class="product-grid">
             <div class="product-card"
-                 th:each="product : ${products}"
+                 th:each="product : ${product}"
                  th:attr="data-id=${product.id}"
                  th:onclick="'location.href=\'/product/' + ${product.id} + '\';'"
                  style="cursor: pointer;">
