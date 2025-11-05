@@ -414,7 +414,11 @@
             </nav>
             <div class="user-info" sec:authorize="isAuthenticated()">
                 <span class="user-email" sec:authentication="principal.username"></span>
-                <a href="/login" th:href="@{/login}" class="btn-logout">로그아웃</a>
+
+                <form th:action="@{/member/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="btn-logout">로그아웃</button>
+                </form>
+            </div>
             </div>
         </div>
     </header>
@@ -454,33 +458,46 @@
         <h1 class="page-title">전체 상품</h1>
         <p class="page-subtitle">최고 품질의 상품들을 만나보세요</p>
 
-        <!-- 상품 리스트 그리드 -->
         <div class="product-grid">
-            <!-- 상품 1 -->
-            <div class="product-card" th:each="product : ${products}">
+            <div class="product-card"
+                 th:each="product : ${products}"
+                 th:attr="data-id=${product.id}"
+                 th:onclick="'location.href=\'/product/' + ${product.id} + '\';'"
+                 style="cursor: pointer;">
+
                 <div class="product-image-wrapper">
                     <img class="product-image"
-                         src="https://via.placeholder.com/280x250/4a90e2/fff?text=Headphones">
+                         src="https://via.placeholder.com/280x250/4a90e2/fff?text=Headphones"
+                         th:alt="${product.name}">
                     <span class="product-badge badge-new">NEW</span>
                     <span class="product-badge" style="top: 40px;">0%</span>
                 </div>
+
                 <div class="product-info">
                     <h3 class="product-name" th:text="${product.name}">상품명</h3>
                     <p class="product-description"
-                        th:text="${product.description != null ? product.description : '설명 없음'}">
+                       th:text="${product.description != null ? product.description : '설명 없음'}">
                     </p>
+
                     <div class="product-price">
-                        <span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
+                        <span th:text="${product.price != null ? #numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원' : '가격 미정'}">가격 미정</span>
                     </div>
+
                     <div class="product-meta">
                         <div class="product-rating">
                             <span class="stars">★★★★☆</span>
                             <span class="review-count">(156)</span>
                         </div>
-                        <button class="add-to-cart">장바구니</button>
+
+                        <!-- 장바구니 버튼 -->
+                        <button class="add-to-cart"
+                                onclick="event.stopPropagation(); alert('장바구니에 담겼습니다!');">
+                            장바구니
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
             <!--  상품 2
             <div class="product-card">
@@ -617,20 +634,21 @@
 -->
     <!-- JavaScript (선택사항) -->
     <script>
-        // 장바구니 버튼 클릭 이벤트
+         // 장바구니 버튼 클릭 이벤트
         document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.stopPropagation();
                 alert('장바구니에 추가되었습니다!');
             });
         });
-
-        // 상품 카드 클릭 이벤트 (상세 페이지로 이동)
+        // 카드 클릭시 상세로 이동
         document.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('click', function() {
-                alert('상품 상세 페이지로 이동합니다.');
-            });
-        });
+    card.addEventListener('click', function() {
+        const productId = this.getAttribute('data-id');
+        alert('상품 상세 페이지로 이동합니다.');
+        window.location.href = `/product/detail/${productId}`;
+    });
+});
     </script>
-            </body>
+                        </body>
 </html>

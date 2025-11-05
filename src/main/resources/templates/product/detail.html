@@ -35,6 +35,16 @@
             justify-content: space-between;
             align-items: center;
         }
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
 
         .logo {
             font-size: 24px;
@@ -573,9 +583,14 @@
                 <a href="/" th:href="@{/home}">홈</a>
                 <a href="/product/list" th:href="@{/product/list}">상품목록</a>
                 <a href="/product/create" th:href="@{/product/create}">상품등록</a>
-                <span sec:authorize="isAuthenticated()" sec:authentication="principal.username"></span>
-                <a href="/logout" th:href="@{/logout}" sec:authorize="isAuthenticated()">로그아웃</a>
-            </nav>
+                <div class="user-info" sec:authorize="isAuthenticated()">
+                    <span class="user-email" sec:authentication="principal.username"></span>
+
+                    <form th:action="@{/member/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="btn-logout">로그아웃</button>
+                    </form>
+                </div>
+                </nav>
         </div>
     </header>
 
@@ -637,9 +652,9 @@
 
                     <!-- 판매자 정보 -->
                     <div class="seller-section">
-                        <div class="seller-avatar" th:text="${#strings.substring(product.memberId != null ? product.memberId : 'U', 0, 1)}">S</div>
+                        <div class="seller-avatar" th:text="${product.memberId != null ? 'U' : 'U'}">U</div>
                         <div class="seller-info">
-                            <div class="seller-name" th:text="${product.memberId != null ? product.memberId : '판매자 ' + product.memberId}">판매자</div>
+                            <div class="seller-name" th:text="${product.memberId != null ? '판매자 ID: ' + product.memberId : '판매자'}">판매자</div>
                             <div class="seller-rating">
                                 <span style="color: #f39c12;">★</span> 4.8 판매자 평점
                             </div>
@@ -659,14 +674,11 @@
                         </button>
                     </div>
 
-                    <!-- 소유자 전용 버튼 -->
-                    <div class="action-buttons" th:if="${product.memberId}">
-                        <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-edit">
-                            ✏️ 상품 수정
-                        </a>
-                        <button class="btn btn-delete" th:onclick="'deleteProduct(' + ${product.id} + ')'">
-                            🗑️ 상품 삭제
-                        </button>
+                    <!-- 로그인하면 보임 -->
+                    <div class="action-buttons" th:if="${sessionMemberId != null and sessionMemberId == product.memberId}">
+                        <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-edit">✏️ 상품 수정</a>
+                        <button class="btn btn-delete" th:onclick="'deleteProduct(' + ${product.id} + ')'">🗑️ 상품 삭제</button>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -676,8 +688,8 @@
                 <div class="tab-menu">
                     <button class="tab-button active" onclick="showTab('description')">상품 설명</button>
                     <button class="tab-button" onclick="showTab('info')">상품 정보</button>
-                    <button class="tab-button" onclick="showTab('reviews')">리뷰 (234)</button>
-                    <button class="tab-button" onclick="showTab('qna')">Q&A (45)</button>
+                    <button class="tab-button" onclick="showTab('reviews')">리뷰</button>
+                    <button class="tab-button" onclick="showTab('qna')">Q&A</button>
                 </div>
                 
                 <div class="tab-content">
@@ -776,7 +788,7 @@
             <h2 class="section-title">관련 상품</h2>
             <div class="related-grid">
                 <div class="related-card" th:each="related : ${relatedProducts}">
-                    <a th:href="@{/product/detail/{id}(id=${related.id})}" style="text-decoration: none; color: inherit;">
+                    <a th:href="@{/product/detail/{id}(id=${product.id})}" style="text-decoration: none; color: inherit;">
                         <div class="related-image">📦</div>
                         <div class="related-info">
                             <div class="related-name" th:text="${related.name}">상품명</div>

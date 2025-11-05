@@ -55,11 +55,19 @@ public class ProductController {
         return "redirect:/home";
     }
     @GetMapping("/detail/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id, HttpSession session, Model model) {
         Product p = productService.findById(id);
         model.addAttribute("product", p);
+        model.addAttribute("sessionMemberId", session.getAttribute("LOGIN_MEMBER_ID"));
         return "product/detail";
     }
+    @GetMapping("/update/{id}")
+    public String updateForm(@PathVariable Long id, Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "product/update";
+    }
+
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id,
                          @ModelAttribute Product updatedProduct) {
@@ -68,7 +76,12 @@ public class ProductController {
                 updatedProduct.getDescription(),
                 updatedProduct.getPrice(),
                 updatedProduct.getStock());
-        return "redirect:/product/" + id;
+        return "redirect:/product/detail/" + id;
+    }
+    @DeleteMapping("/delete/{id}")
+    public String delete(@PathVariable Long id) {
+        productService.delete(id);
+        return "redirect:/product/list";
     }
     /*
     @PostMapping("/update/{id}")
