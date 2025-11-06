@@ -583,6 +583,7 @@
                 <a href="/" th:href="@{/home}">홈</a>
                 <a href="/product/list" th:href="@{/product/list}">상품목록</a>
                 <a href="/product/create" th:href="@{/product/create}">상품등록</a>
+                <a th:href="@{/member/mypage}" class="active">마이페이지</a>
                 <div class="user-info" sec:authorize="isAuthenticated()">
                     <span class="user-email" sec:authentication="principal.username"></span>
                     <form th:action="@{/member/logout}" method="post" style="display:inline;">
@@ -665,9 +666,11 @@
                         <button class="btn btn-primary" th:if="${product.stock > 0}">
                             🛒 장바구니 담기
                         </button>
-                        <button class="btn btn-secondary" th:if="${product.stock > 0}">
+                        <a th:href="@{/product/order/{id}(id=${product.id})}"
+                           class="btn btn-secondary"
+                           th:if="${product.stock > 0}">
                             💳 바로 구매
-                        </button>
+                        </a>
                         <button class="btn btn-secondary" th:if="${product.stock == 0}" disabled>
                             품절
                         </button>

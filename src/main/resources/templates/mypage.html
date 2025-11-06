@@ -814,60 +814,51 @@
                     <div class="form-section">
                         <h3 class="form-title">구매 내역</h3>
                     </div>
-                    
-                    <div class="order-list" th:if="${orders != null and !orders.isEmpty()}">
-                        <div class="order-card" th:each="order : ${orders}">
+
+                    <!-- 구매 내역 존재 -->
+                    <div class="order-list" th:if="${orderItems != null and !#lists.isEmpty(orderItems)}">
+                        <div class="order-card" th:each="item : ${orderItems}">
                             <div class="order-header">
                                 <div>
-                                    <div class="order-number">주문번호: <span th:text="${order.orderNumber}">20240101-001</span></div>
-                                    <div class="order-date" th:text="${#temporals.format(order.orderDate, 'yyyy년 MM월 dd일 HH:mm')}">2024년 01월 01일</div>
-                                </div>
-                                <div class="order-status"
-                                     th:classappend="${'status-' + #strings.toLowerCase(order.status)}"
-                                     th:text="${order.statusDesc}">배송완료</div>
-                            </div>
-                            
-                            <div class="order-body">
-                                <div class="order-items">
-                                    <div class="order-item" th:each="item : ${order.orderItems}">
-                                        <div class="order-item-image">📦</div>
-                                        <div class="order-item-info">
-                                            <div class="order-item-name" th:text="${item.productName}">상품명</div>
-                                            <div class="order-item-details">
-                                                판매자: <span th:text="${item.sellerName}">판매자명</span> | 
-                                                상태: <span th:text="${item.statusDesc}">배송완료</span>
-                                            </div>
-                                        </div>
-                                        <div class="order-item-price">
-                                            <div class="order-price" th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
-                                            <div class="order-quantity">수량: <span th:text="${item.quantity}">1</span>개</div>
-                                        </div>
+                                    <div class="order-date">
+                                        주문일시:
+                                        <span th:text="${#temporals.format(item.order.orderDate, 'yyyy년 MM월 dd일 HH:mm')}">2025년 11월 06일</span>
                                     </div>
                                 </div>
+
+                                <!-- 상태/클래스 null-safe -->
+                                <div class="order-status"
+                                     th:classappend="${'status-' + (item.status != null ? #strings.toLowerCase(item.status) : 'pending')}"
+                                     th:text="${item.status != null ? item.status : 'PENDING'}">PENDING</div>
                             </div>
-                            
-                            <div class="order-footer">
-                                <div class="order-total">
-                                    총 결제금액: <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
-                                </div>
-                                <div class="order-actions">
-                                    <button class="btn btn-sm btn-outline">상세보기</button>
-                                    <button class="btn btn-sm btn-primary" th:if="${order.status == 'DELIVERED'}">리뷰작성</button>
+
+                            <div class="order-body">
+                                <div class="order-item">
+                                    <div class="order-item-image">📦</div>
+                                    <div class="order-item-info">
+                                        <div class="order-item-name" th:text="${item.productName}">상품명</div>
+                                        <div class="order-item-details">
+                                            판매자 ID: <span th:text="${item.sellerId}">판매자</span> |
+                                            수량: <span th:text="${item.quantity}">1</span>개
+                                        </div>
+                                    </div>
+                                    <div class="order-item-price">
+                                        <div class="order-price"
+                                             th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="empty-state" th:if="${orders == null or orders.isEmpty()}">
+
+                    <!-- 구매 내역 없음 -->
+                    <div class="empty-state" th:if="${orderItems == null or #lists.isEmpty(orderItems)}">
                         <div class="empty-icon">🛒</div>
                         <div class="empty-title">구매 내역이 없습니다</div>
                         <div class="empty-subtitle">마음에 드는 상품을 구매해보세요!</div>
-                        <a href="/product/list" th:href="@{/product/list}" class="btn btn-primary">
-                            상품 둘러보기
-                        </a>
+                        <a th:href="@{/product/list}" class="btn btn-primary">상품 둘러보기</a>
                     </div>
                 </div>
-
                 <!-- 판매 상품 탭 -->
                 <div id="product" class="tab-panel">
                     <div class="form-section">
@@ -926,32 +917,48 @@
                     <div class="form-section">
                         <h3 class="form-title">판매 내역</h3>
                     </div>
-                    
-                    <div th:if="${salesOrders != null and !salesOrders.isEmpty()}">
-                        <div class="sales-card" th:each="sale : ${salesOrders}">
+
+                    <!-- 판매 내역 존재 -->
+                    <div th:if="${salesItems != null and !#lists.isEmpty(salesItems)}">
+                        <div class="sales-card" th:each="item : ${salesItems}">
                             <div class="sales-header">
                                 <div>
                                     <div style="font-weight: 600; margin-bottom: 5px;">
-                                        <span th:text="${sale.productName}">상품명</span>
+                                        <span th:text="${item.productName}">상품명</span>
                                     </div>
                                     <div class="sales-date">
-                                        구매자: <span th:text="${sale.buyerName}">구매자명</span> | 
-                                        <span th:text="${#temporals.format(sale.orderDate, 'yyyy.MM.dd')}">2024.01.01</span>
+                                        주문일시:
+                                        <span th:text="${#temporals.format(item.order.orderDate, 'yyyy.MM.dd HH:mm')}">2025.11.06 12:00</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <div class="sales-amount" th:text="${#numbers.formatDecimal(sale.amount, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
-                                    <div style="text-align: right;">
-                                        <span class="order-status"
-                                              th:classappend="${'status-' + #strings.toLowerCase(sale.status)}"
-                                              th:text="${sale.statusDesc}">배송완료</span>
+                                <div style="text-align: right;">
+                                    <div class="sales-amount"
+                                         th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+
+                                    <!-- 상태/클래스 null-safe -->
+                                    <span class="order-status"
+                                          th:classappend="${'status-' + (item.status != null ? #strings.toLowerCase(item.status) : 'pending')}"
+                                          th:text="${item.status != null ? item.status : 'PENDING'}">PENDING</span>
+                                </div>
+                            </div>
+
+                            <div class="sales-body">
+                                <div class="order-item">
+                                    <div class="order-item-image">📦</div>
+                                    <div class="order-item-info">
+                                        <div class="order-item-details">
+                                            수량: <span th:text="${item.quantity}">1</span>개
+                                            <!-- 단가가 필요하면 아래 주석 해제 -->
+                                            <!-- | 단가: <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span> -->
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="empty-state" th:if="${salesOrders == null or salesOrders.isEmpty()}">
+
+                    <!-- 판매 내역 없음 -->
+                    <div class="empty-state" th:if="${salesItems == null or #lists.isEmpty(salesItems)}">
                         <div class="empty-icon">💰</div>
                         <div class="empty-title">판매 내역이 없습니다</div>
                         <div class="empty-subtitle">상품이 판매되면 여기에 표시됩니다</div>

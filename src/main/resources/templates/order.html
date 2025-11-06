@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}"/>
+    <title>주문하기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* 헤더 */
+        .header {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .user-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        /* 페이지 타이틀 */
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        /* 주문 폼 레이아웃 */
+        .order-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* 주문 정보 섹션 */
+        .order-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 상품 정보 섹션 */
+        .product-info {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .product-image {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+
+        .product-details {
+            flex: 1;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-seller {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .product-price-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+        }
+
+        .price-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .price-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* 수량 선택 */
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: white;
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #f1f3f5;
+        }
+
+        .quantity-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .quantity-input {
+            width: 60px;
+            height: 36px;
+            border: none;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .stock-info {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 구매자 정보 폼 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 5px;
+        }
+
+        /* 체크박스 그룹 */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #495057;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* 결제 요약 (사이드바) */
+        .order-summary {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .summary-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .summary-item.product-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .summary-product-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .summary-quantity {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .summary-divider {
+            border-top: 2px solid #e9ecef;
+            margin: 20px 0;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .total-label {
+            color: #333;
+        }
+
+        .total-amount {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        /* 결제 수단 */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .payment-method {
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+        }
+
+        .payment-method input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .payment-method:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .payment-method.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .payment-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .payment-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* 약관 동의 */
+        .agreement-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .agreement-all {
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .agreement-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .agreement-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .agreement-item label {
+            font-size: 14px;
+            color: #495057;
+            flex: 1;
+        }
+
+        .agreement-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .agreement-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #666;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+
+        /* 알림 메시지 */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-info {
+            background: #e7f3ff;
+            color: #0066cc;
+            border: 1px solid #b3d9ff;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* 로딩 스피너 */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 반응형 */
+        @media (max-width: 992px) {
+            .order-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .order-summary {
+                position: relative;
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .product-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .product-price-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/" th:href="@{/}" class="logo">🛍️ MyShop</a>
+            <div class="user-info">
+                <span sec:authentication="principal.username"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <h1 class="page-title">주문하기</h1>
+
+        <form id="orderForm" th:action="@{/product/order/create}" method="post">
+            <input type="hidden" name="productId" th:value="${product.id}">
+
+            <div class="order-layout">
+                <!-- 왼쪽: 주문 정보 입력 -->
+                <div class="order-sections">
+                    <!-- 상품 정보 섹션 -->
+                    <div class="section">
+                        <h2 class="section-title">
+                            <span>📦</span> 주문 상품
+                        </h2>
+
+                        <div class="product-info">
+                            <div class="product-image">📦</div>
+                            <div class="product-details">
+                                <div class="product-name" th:text="${product.name}">상품명</div>
+                                <div class="product-seller">
+                                    판매자: <span th:text="${product.memberId != null ? product.memberId : '판매자'}">판매자명</span>
+                                </div>
+                                <div class="product-price-info">
+                                    <div>
+                                        <div class="price-label">상품 가격</div>
+                                        <div class="price-value" id="productPrice"
+                                             th:data-price="${product.price}"
+                                             th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
+                                    </div>
+                                    <div class="quantity-selector">
+                                        <label style="font-size: 14px; margin: 0;">수량:</label>
+                                        <div class="quantity-controls">
+                                            <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+                                            <input type="number" class="quantity-input" id="quantity" name="quantity"
+                                                   value="1" min="1" th:max="${product.stock}" readonly>
+                                            <button type="button" class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                                        </div>
+                                        <span class="stock-info">재고: <span th:text="${product.stock}">0</span>개</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 구매자 정보 섹션 -->
+                    <div class="section">
+                        <h2 class="section-title">
+                            <span>👤</span> 구매자 정보
+                        </h2>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="sameAsMember" checked onchange="toggleBuyerInfo()">
+                            <label for="sameAsMember">회원 정보와 동일</label>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="buyerName">이름 <span class="required">*</span></label>
+                                <input type="text" id="buyerName" name="buyerName"
+                                       th:value="${member.name}" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerEmail">이메일 <span class="required">*</span></label>
+                                <input type="email" id="buyerEmail" name="buyerEmail"
+                                       th:value="${member.email}" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="buyerPhone">전화번호 <span class="required">*</span></label>
+                                <input type="tel" id="buyerPhone" name="buyerPhone"
+                                       th:value="${member.phoneNumber}" required readonly>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="buyerAddress">주소 <span class="required">*</span></label>
+                                <input type="text" id="buyerAddress" name="buyerAddress"
+                                       th:value="${member.address}" required readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 배송 정보 섹션 -->
+                    <div class="section">
+                        <h2 class="section-title">
+                            <span>🚚</span> 배송 정보
+                        </h2>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="sameAsBuyer" checked onchange="toggleDeliveryInfo()">
+                            <label for="sameAsBuyer">구매자 정보와 동일</label>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="receiverName">받는 분 <span class="required">*</span></label>
+                                <input type="text" id="receiverName" name="receiverName"
+                                       th:value="${member.name}" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="receiverPhone">연락처 <span class="required">*</span></label>
+                                <input type="tel" id="receiverPhone" name="deliveryPhone"
+                                       th:value="${member.phoneNumber}" required readonly>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="deliveryAddress">배송지 주소 <span class="required">*</span></label>
+                                <input type="text" id="deliveryAddress" name="deliveryAddress"
+                                       th:value="${member.address}" required readonly>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="deliveryMemo">배송 메모</label>
+                                <textarea id="deliveryMemo" name="deliveryMemo"
+                                          placeholder="배송 시 요청사항을 입력해주세요 (선택)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결제 수단 섹션 -->
+                    <div class="section">
+                        <h2 class="section-title">
+                            <span>💳</span> 결제 수단
+                        </h2>
+
+                        <div class="payment-methods">
+                            <label class="payment-method selected">
+                                <input type="radio" name="paymentMethod" value="CARD" checked>
+                                <div class="payment-icon">💳</div>
+                                <div class="payment-name">신용/체크카드</div>
+                            </label>
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="TRANSFER">
+                                <div class="payment-icon">🏦</div>
+                                <div class="payment-name">계좌이체</div>
+                            </label>
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="VIRTUAL">
+                                <div class="payment-icon">📱</div>
+                                <div class="payment-name">가상계좌</div>
+                            </label>
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="PHONE">
+                                <div class="payment-icon">📞</div>
+                                <div class="payment-name">휴대폰결제</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 결제 요약 -->
+                <div class="order-summary">
+                    <div class="summary-card">
+                        <h3 class="summary-title">결제 정보</h3>
+
+                        <div class="summary-item product-item">
+                            <div>
+                                <div class="summary-product-name" th:text="${product.name}">상품명</div>
+                                <div class="summary-quantity">
+                                    <span id="summaryQuantity">1</span>개 ×
+                                    <span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="summary-item">
+                            <span>상품 금액</span>
+                            <span id="summaryProductAmount" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span>
+                        </div>
+
+                        <div class="summary-item">
+                            <span>배송비</span>
+                            <span id="deliveryFee">3,000원</span>
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-total">
+                            <span class="total-label">총 결제금액</span>
+                            <span class="total-amount" id="totalAmount">0원</span>
+                        </div>
+
+                        <!-- 약관 동의 -->
+                        <div class="agreement-section">
+                            <div class="agreement-all">
+                                <label>
+                                    <input type="checkbox" id="agreeAll" onchange="toggleAllAgreements()">
+                                    전체 동의
+                                </label>
+                            </div>
+                            <div class="agreement-item">
+                                <input type="checkbox" id="agree1" name="agreeTerms" required>
+                                <label for="agree1">구매조건 확인 및 결제 동의 (필수)</label>
+                                <a href="#" class="agreement-link">보기</a>
+                            </div>
+                            <div class="agreement-item">
+                                <input type="checkbox" id="agree2" name="agreePrivacy" required>
+                                <label for="agree2">개인정보 제3자 제공 동의 (필수)</label>
+                                <a href="#" class="agreement-link">보기</a>
+                            </div>
+                        </div>
+
+                        <!-- 결제 버튼 -->
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span id="btnText">결제하기</span>
+                            <span class="spinner" id="btnSpinner" style="display:none;"></span>
+                        </button>
+
+                        <div class="alert alert-info" style="margin-top: 15px;">
+                            <span>ℹ️</span>
+                            <span style="font-size: 13px;">주문 완료 후 마이페이지에서 확인 가능합니다</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        const maxStock = [[${product.stock}]];
+        const productPrice = [[${product.price}]];
+        const memberInfo = {
+            name: [[${member.name}]],
+            email: [[${member.email}]],
+            phone: [[${member.phoneNumber}]],
+            address: [[${member.address}]]
+        };
+
+        // 수량 변경
+        function changeQuantity(delta) {
+            const input = document.getElementById('quantity');
+            let currentValue = parseInt(input.value);
+            let newValue = currentValue + delta;
+
+            if (newValue < 1) newValue = 1;
+            if (newValue > maxStock) newValue = maxStock;
+
+            input.value = newValue;
+            updatePriceSummary();
+        }
+
+        // 가격 업데이트
+        function updatePriceSummary() {
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const productAmount = productPrice * quantity;
+            const deliveryFee = productAmount >= 50000 ? 0 : 3000;
+            const totalAmount = productAmount + deliveryFee;
+
+            // 요약 업데이트
+            document.getElementById('summaryQuantity').textContent = quantity;
+            document.getElementById('summaryProductAmount').textContent =
+                productAmount.toLocaleString() + '원';
+            document.getElementById('deliveryFee').textContent =
+                deliveryFee === 0 ? '무료' : deliveryFee.toLocaleString() + '원';
+            document.getElementById('totalAmount').textContent =
+                totalAmount.toLocaleString() + '원';
+        }
+
+        // 구매자 정보 토글
+        function toggleBuyerInfo() {
+            const checkbox = document.getElementById('sameAsMember');
+            const inputs = ['buyerName', 'buyerEmail', 'buyerPhone', 'buyerAddress'];
+
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (checkbox.checked) {
+                    input.value = memberInfo[id.replace('buyer', '').toLowerCase()] || memberInfo.address;
+                    input.readOnly = true;
+                } else {
+                    input.readOnly = false;
+                }
+            });
+        }
+
+        // 배송 정보 토글
+        function toggleDeliveryInfo() {
+            const checkbox = document.getElementById('sameAsBuyer');
+            const mappings = {
+                'receiverName': 'buyerName',
+                'receiverPhone': 'buyerPhone',
+                'deliveryAddress': 'buyerAddress'
+            };
+
+            Object.keys(mappings).forEach(key => {
+                const input = document.getElementById(key);
+                if (checkbox.checked) {
+                    input.value = document.getElementById(mappings[key]).value;
+                    input.readOnly = true;
+                } else {
+                    input.readOnly = false;
+                }
+            });
+        }
+
+        // 전체 동의
+        function toggleAllAgreements() {
+            const allCheckbox = document.getElementById('agreeAll');
+            document.getElementById('agree1').checked = allCheckbox.checked;
+            document.getElementById('agree2').checked = allCheckbox.checked;
+        }
+
+        // 결제 수단 선택
+        document.querySelectorAll('.payment-method').forEach(method => {
+            method.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method').forEach(m =>
+                    m.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // 폼 제출
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // 약관 동의 체크
+            if (!document.getElementById('agree1').checked ||
+                !document.getElementById('agree2').checked) {
+                alert('필수 약관에 동의해주세요.');
+                return;
+            }
+
+            // 재고 확인
+            const quantity = parseInt(document.getElementById('quantity').value);
+            if (quantity > maxStock) {
+                alert('재고가 부족합니다.');
+                return;
+            }
+
+            // 로딩 표시
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const submitBtn = document.getElementById('submitBtn');
+
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+            submitBtn.disabled = true;
+
+            // 실제 제출
+            this.submit();
+        });
+
+        // 초기 가격 계산
+        updatePriceSummary();
+    </script>
+</body>
+</html>

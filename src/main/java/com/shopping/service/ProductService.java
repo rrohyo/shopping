@@ -74,10 +74,12 @@ public class ProductService {
     }
     @Transactional
     public void delete(Long id) {
+
         productRepository.deleteById(id);
     }
     @Transactional(readOnly = true)
     public List<Product> findByMemberId(Long memberId) {
+
         return productRepository.findByMemberId(memberId);
     }
 }

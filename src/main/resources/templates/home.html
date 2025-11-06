@@ -442,8 +442,8 @@
 
             <!-- 네비게이션 메뉴 -->
             <nav>
-                <a href="/about">소개</a>
-                <a href="/contact">문의</a>
+                <a href="/home" th:href="@{/home}">홈</a>
+                <a href="/product/list" th:href="@{/product/list}">상품목록</a>
                 <a href="/member/mypage" th:href="@{/member/mypage}">마이페이지</a>
             </nav>
             <div class="user-info" sec:authorize="isAuthenticated()">
