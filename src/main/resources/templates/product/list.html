@@ -637,9 +637,15 @@
                                    th:if="${session.LOGIN_MEMBER_ID != null and session.LOGIN_MEMBER_ID == product.memberId}"
                                    class="btn-action btn-edit">수정</a>
 
-                                <button class="btn-action btn-delete"
-                                        th:if="${session.LOGIN_MEMBER_ID != null and session.LOGIN_MEMBER_ID == product.memberId}"
-                                        th:onclick="'deleteProduct(' + ${product.id} + ')'">삭제</button>
+                                <form th:if="${session.LOGIN_MEMBER_ID != null and session.LOGIN_MEMBER_ID == product.memberId}"
+                                      th:action="@{/product/delete/{id}(id=${product.id})}"
+                                      method="post"
+                                      onsubmit="event.stopPropagation(); return confirm('삭제하시겠습니까?');">
+                                    <!-- CSRF (설정되어 있으면) -->
+                                    <input type="hidden" th:if="${_csrf != null}"
+                                           th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn-action btn-delete">삭제</button>
+                                </form>
                             </div>
                         </td>
                     </tr>

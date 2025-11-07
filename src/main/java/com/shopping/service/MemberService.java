@@ -36,7 +36,7 @@ public class MemberService {
     public Member login(String loginId, String password) {
         Member m = memberRepository.findByEmailAndPassword(loginId, password).orElse(null);
         if (m == null) {
-            throw new RuntimeException("아이디 또는 비밀번호가 올바르지 않습니다.");
+            throw new RuntimeException("아이디 또는 비밀번호를 다시입력 하세요");
         }
         return m;
     }

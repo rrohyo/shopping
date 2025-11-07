@@ -623,13 +623,23 @@
                 <!-- 상품 정보 영역 -->
                 <div class="product-info">
                     <h1 class="product-title" th:text="${product.name}">상품명</h1>
-                    
+
                     <div class="product-meta">
+                        <!-- 별점 표시 -->
                         <div class="rating">
-                            <span class="stars">★★★★☆</span>
-                            <span class="rating-text">4.5 (234 리뷰)</span>
+  <span class="stars">
+    <span th:each="i : ${#numbers.sequence(1,5)}"
+          th:text="${i <= fullStars} ? '★' : '☆'">☆</span>
+  </span>
+                            <span class="rating-text">
+    <span th:text="${#numbers.formatDecimal(avgRating, 1, 'COMMA', 1, 'POINT')}">0.0</span>
+    점 / <span th:text="${reviewCount}">0</span>개 리뷰
+  </span>
                         </div>
-                        <span class="product-code">상품코드: #<span th:text="${product.id}">1</span></span>
+
+                        <span class="product-code">
+        상품코드: #<span th:text="${product.id}">1</span>
+    </span>
                     </div>
 
                     <!-- 가격 -->
@@ -677,12 +687,23 @@
                     </div>
 
                     <!-- 로그인하면 보임 -->
-                    <div class="action-buttons" th:if="${sessionMemberId != null and sessionMemberId == product.memberId}">
-                        <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-edit">✏️ 상품 수정</a>
-                        <button class="btn btn-delete" th:onclick="'deleteProduct(' + ${product.id} + ')'">🗑️ 상품 삭제</button>
+                    <div class="action-buttons"
+                         th:if="${sessionMemberId != null and sessionMemberId == product.memberId}">
+
+                        <!-- 상품 수정 -->
+                        <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-edit">
+                            ✏️ 상품 수정
+                        </a>
+
+                        <!-- 상품 삭제 (POST 방식) -->
+                        <form th:action="@{/product/delete/{id}(id=${product.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-delete"
+                                    onclick="return confirm('정말로 삭제하시겠습니까? 삭제 후 복구할 수 없습니다.');">
+                                🗑️ 상품 삭제
+                            </button>
+                        </form>
                     </div>
                     </div>
-                </div>
             </div>
 
             <!-- 탭 메뉴 -->
@@ -763,27 +784,182 @@
                             </tr>
                         </table>
                     </div>
-                    
+
                     <!-- 리뷰 탭 -->
                     <div id="reviews" class="tab-panel">
-                        <div style="text-align: center; padding: 40px; color: #666;">
+                        <div th:if="${reviews != null and !reviews.isEmpty()}">
+                            <div class="review-card" th:each="review : ${reviews}">
+                                <div class="review-header">
+                                    <div class="review-author">
+                                        <span>👤</span>
+                                        <strong th:text="${review.memberId}">작성자</strong>
+                                    </div>
+                                    <div class="review-date" th:text="${#temporals.format(review.regDate, 'yyyy.MM.dd HH:mm')}">
+                                        2025.11.07
+                                    </div>
+                                </div>
+
+                                <!-- 별점 표시 -->
+                                <div class="review-rating" th:if="${review.rating != null and review.rating > 0}">
+                                    <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span>
+                                    <span th:each="i : ${#numbers.sequence(1, 5 - review.rating)}">☆</span>
+                                </div>
+
+                                <!-- 리뷰 내용 -->
+                                <div class="review-content" th:text="${review.content}">리뷰 내용</div>
+
+                                <!-- ✅ 본인 리뷰일 때만 수정/삭제 가능 -->
+                                <div class="review-actions"
+                                     th:if="${sessionMemberId != null and sessionMemberId == review.memberId}"
+                                     style="margin-top:8px;">
+
+                                    <!-- 수정: 별점 + 내용 함께 -->
+                                    <form th:action="@{/review/update}" method="post" style="display:inline;">
+                                        <input type="hidden" name="reviewId"  th:value="${review.id}" />
+                                        <input type="hidden" name="productId" th:value="${product.id}" />
+
+                                        <!-- 별점 선택 -->
+                                        <label style="margin-right:6px;">별점</label>
+                                        <select name="rating" required>
+                                            <option th:each="i : ${#numbers.sequence(1,5)}"
+                                                    th:value="${i}"
+                                                    th:text="${i}"
+                                                    th:selected="${i == review.rating}"></option>
+                                        </select>
+
+                                        <!-- 내용 -->
+                                        <input type="text" name="content" th:value="${review.content}"
+                                               required style="width:40%; margin-left:6px;" />
+
+                                        <!-- CSRF -->
+                                        <input type="hidden" th:if="${_csrf != null}"
+                                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                                        <button type="submit" class="btn btn-sm btn-secondary" style="margin-left:6px;">수정</button>
+                                    </form>
+
+                                    <!-- 삭제 -->
+                                    <form th:action="@{/review/delete}" method="post"
+                                          style="display:inline; margin-left:6px;"
+                                          onsubmit="return confirm('리뷰를 삭제할까요?');">
+                                        <input type="hidden" name="reviewId"  th:value="${review.id}" />
+                                        <input type="hidden" name="productId" th:value="${product.id}" />
+                                        <input type="hidden" th:if="${_csrf != null}"
+                                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <button type="submit" class="btn btn-sm btn-outline">삭제</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- 리뷰 작성 버튼 -->
+                        <div class="review-actions" style="margin-top:16px; text-align:center;">
+                            <a class="btn btn-primary"
+                               th:if="${sessionMemberId != null}"
+                               th:href="@{/review/create(productId=${product.id})}">
+                                리뷰 작성하기
+                            </a>
+                            <a class="btn btn-primary"
+                               th:if="${sessionMemberId == null}"
+                               th:href="@{/login}">
+                                로그인 후 리뷰 작성
+                            </a>
+                        </div>
+
+                        <!-- 리뷰가 없을 때 -->
+                        <div th:if="${reviews == null or reviews.isEmpty()}"
+                             style="text-align: center; padding: 40px; color: #666;">
                             <div style="font-size: 48px; margin-bottom: 20px;">💬</div>
                             <p>아직 등록된 리뷰가 없습니다.</p>
                             <p style="margin-top: 10px;">첫 번째 리뷰를 작성해주세요!</p>
                         </div>
                     </div>
-                    
+
                     <!-- Q&A 탭 -->
                     <div id="qna" class="tab-panel">
-                        <div style="text-align: center; padding: 40px; color: #666;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">❓</div>
-                            <p>아직 등록된 질문이 없습니다.</p>
-                            <p style="margin-top: 10px;">궁금한 점이 있으시면 질문해주세요!</p>
+                        <div class="form-section">
+                            <h3 class="form-title">상품 Q&A</h3>
+                        </div>
+
+                        <!-- QnA 작성 폼 (누구나, 로그인 필요) -->
+                        <div th:if="${sessionMemberId != null}">
+                            <form th:action="@{/qna/create}" method="post" class="qna-form" style="margin-bottom:16px;">
+                                <input type="hidden" name="productId" th:value="${product.id}" />
+                                <textarea name="content" placeholder="상품에 대해 궁금한 점을 입력하세요." required></textarea>
+                                <button type="submit" class="btn btn-primary">질문 등록</button>
+                            </form>
+                        </div>
+                        <div th:if="${sessionMemberId == null}" class="alert alert-info">
+                            로그인 후 질문을 작성할 수 있습니다.
+                        </div>
+
+                        <!-- QnA 목록 -->
+                        <div th:if="${qnaList != null and !qnaList.isEmpty()}">
+                            <div th:each="qna : ${qnaList}" class="qna-item" style="border:1px solid #eee;padding:12px;border-radius:8px;margin-bottom:12px;">
+                                <div class="qna-header" style="display:flex;justify-content:space-between;">
+                                    <strong>작성자: <span th:text="${qna.memberId}">0</span></strong>
+                                    <span th:text="${#temporals.format(qna.regDate, 'yyyy.MM.dd HH:mm')}">2025.11.07</span>
+                                </div>
+
+                                <div class="qna-content" th:text="${qna.content}" style="margin:8px 0;">문의 내용</div>
+
+                                <!-- 질문자만 수정/삭제 -->
+                                <div th:if="${sessionMemberId != null and sessionMemberId == qna.memberId}" style="margin-bottom:8px;">
+                                    <form th:action="@{/qna/update}" method="post" style="display:inline;">
+                                        <input type="hidden" name="productId" th:value="${product.id}"/>
+                                        <input type="hidden" name="qnaId" th:value="${qna.id}"/>
+                                        <input type="text" name="content" th:value="${qna.content}" required/>
+                                        <button type="submit" class="btn btn-sm btn-secondary">수정</button>
+                                    </form>
+                                    <form th:action="@{/qna/delete}" method="post" style="display:inline;margin-left:6px;">
+                                        <input type="hidden" name="productId" th:value="${product.id}"/>
+                                        <input type="hidden" name="qnaId" th:value="${qna.id}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline">삭제</button>
+                                    </form>
+                                </div>
+
+                                <!-- 판매자 답변 영역 -->
+                                <div class="qna-answer" th:if="${qna.answer != null}" style="background:#f9fafb;padding:10px;border-radius:6px;">
+                                    <div style="font-weight:600;margin-bottom:6px;">판매자 답변</div>
+                                    <div th:text="${qna.answer.content}">답변 내용</div>
+
+                                    <!-- 판매자만 답변 수정/삭제 -->
+                                    <div th:if="${sessionMemberId != null and sessionMemberId == product.memberId}" style="margin-top:8px;">
+                                        <form th:action="@{/qna/answer/update}" method="post" style="display:inline;">
+                                            <input type="hidden" name="productId" th:value="${product.id}"/>
+                                            <input type="hidden" name="qnaId" th:value="${qna.id}"/>
+                                            <input type="text" name="content" th:value="${qna.answer.content}" required/>
+                                            <button type="submit" class="btn btn-sm btn-secondary">수정</button>
+                                        </form>
+                                        <form th:action="@{/qna/answer/delete}" method="post" style="display:inline;margin-left:6px;">
+                                            <input type="hidden" name="productId" th:value="${product.id}"/>
+                                            <input type="hidden" name="qnaId" th:value="${qna.id}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline">삭제</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- 답변이 없을 때 판매자만 입력 -->
+                                <div th:if="${qna.answer == null and sessionMemberId != null and sessionMemberId == product.memberId}" style="margin-top:8px;">
+                                    <form th:action="@{/qna/answer/create}" method="post" style="display:flex;gap:6px;">
+                                        <input type="hidden" name="productId" th:value="${product.id}"/>
+                                        <input type="hidden" name="qnaId" th:value="${qna.id}"/>
+                                        <input type="text" name="content" placeholder="답변 작성..." required style="flex:1;"/>
+                                        <button type="submit" class="btn btn-sm btn-primary">답변 등록</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q&A 없음 -->
+                        <div th:if="${qnaList == null or qnaList.isEmpty()}" class="empty-state" style="text-align:center;padding:40px;color:#666;">
+                            <div style="font-size:48px;margin-bottom:12px;">❓</div>
+                            <div style="font-weight:600;">등록된 Q&A가 없습니다</div>
+                            <div style="margin-top:6px;">궁금한 점을 자유롭게 질문해 보세요!</div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
         <!-- 관련 상품 -->
         <div class="related-products" th:if="${relatedProducts != null and !relatedProducts.isEmpty()}">
@@ -816,34 +992,9 @@
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
-        
-        // 상품 삭제 함수
-        function deleteProduct(productId) {
-            if (confirm('정말로 이 상품을 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.')) {
-                const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-                const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-                
-                fetch('/product/delete/' + productId, {
-                    method: 'DELETE',
-                    headers: {
-                        [header]: token
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        alert('상품이 삭제되었습니다.');
-                        window.location.href = '/product/list';
-                    } else {
-                        alert('삭제 중 오류가 발생했습니다.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('삭제 중 오류가 발생했습니다.');
-                });
-            }
-        }
-        
+
+
+
         // 이미지 썸네일 클릭 이벤트
         document.querySelectorAll('.thumbnail').forEach(thumb => {
             thumb.addEventListener('click', function() {
@@ -851,6 +1002,14 @@
                 this.classList.add('active');
             });
         });
+        function toggleEdit(answerId) {
+    const view = document.getElementById('answer-view-' + answerId);
+    const edit = document.getElementById('answer-edit-' + answerId);
+    if (!view || !edit) return;
+    const isHidden = edit.style.display === 'none' || edit.style.display === '';
+    edit.style.display = isHidden ? 'block' : 'none';
+    view.style.display = isHidden ? 'none' : 'block';
+  }
     </script>
 </body>
 </html>

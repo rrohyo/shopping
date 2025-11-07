@@ -492,28 +492,26 @@
         <p class="page-subtitle">최고 품질의 상품들을 만나보세요</p>
 
         <div class="product-grid">
-            <div class="product-card"
-                 th:each="product : ${product}"
-                 th:attr="data-id=${product.id}"
-                 th:onclick="'location.href=\'/product/' + ${product.id} + '\';'"
-                 style="cursor: pointer;">
+            <a class="product-card"
+               th:each="p : ${product}"
+               th:href="@{/product/detail/{id}(id=${p.id})}"
+               style="cursor:pointer; text-decoration:none; color:inherit;">
 
                 <div class="product-image-wrapper">
                     <img class="product-image"
                          src="https://via.placeholder.com/280x250/4a90e2/fff?text=Headphones"
-                         th:alt="${product.name}">
+                         th:alt="${p.name}">
                     <span class="product-badge badge-new">NEW</span>
                     <span class="product-badge" style="top: 40px;">0%</span>
                 </div>
 
                 <div class="product-info">
-                    <h3 class="product-name" th:text="${product.name}">상품명</h3>
+                    <h3 class="product-name" th:text="${p.name}">상품명</h3>
                     <p class="product-description"
-                       th:text="${product.description != null ? product.description : '설명 없음'}">
-                    </p>
+                       th:text="${p.description != null ? p.description : '설명 없음'}"></p>
 
                     <div class="product-price">
-                        <span th:text="${product.price != null ? #numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원' : '가격 미정'}">가격 미정</span>
+                        <span th:text="${p.price != null ? #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') + '원' : '가격 미정'}">가격 미정</span>
                     </div>
 
                     <div class="product-meta">
@@ -522,14 +520,13 @@
                             <span class="review-count">(156)</span>
                         </div>
 
-                        <!-- 장바구니 버튼 -->
                         <button class="add-to-cart"
                                 onclick="event.stopPropagation(); alert('장바구니에 담겼습니다!');">
                             장바구니
                         </button>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="pagination">
             <a class="page-link"

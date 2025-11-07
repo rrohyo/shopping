@@ -1,7 +1,13 @@
 package com.shopping.controller;
 
 import com.shopping.entity.Product;
+import com.shopping.entity.Qna;
+import com.shopping.entity.QnaAnswer;
+import com.shopping.entity.Review;
+import com.shopping.repository.ReviewRepository;
 import com.shopping.service.ProductService;
+import com.shopping.service.QnaService;
+import com.shopping.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,12 +16,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/product")
 public class ProductController {
     private final ProductService productService;
+    private final ReviewService reviewService;
+    private final QnaService qnaService;
     @GetMapping("/list")
     public String list(@RequestParam(required = false) String name,
                        @RequestParam(defaultValue = "0") int page,
@@ -64,9 +73,27 @@ public class ProductController {
     }
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable Long id, HttpSession session, Model model) {
+        // 상품 조회
         Product p = productService.findById(id);
         model.addAttribute("product", p);
+
+        // 로그인 사용자
         model.addAttribute("sessionMemberId", session.getAttribute("LOGIN_MEMBER_ID"));
+
+        // 리뷰 관련 정보
+        model.addAttribute("reviews", reviewService.getReviewsByProduct(id));
+        model.addAttribute("reviewCount", reviewService.getReviewCount(id));
+        double avg = reviewService.getAverageRating(id); // 0.0 ~ 5.0
+        int fullStars = (int) Math.round(avg);
+        fullStars = Math.max(0, Math.min(5, fullStars));
+        int emptyStars = 5 - fullStars;
+
+        model.addAttribute("avgRating", avg);
+        model.addAttribute("fullStars", fullStars);
+        model.addAttribute("emptyStars", emptyStars);
+        // QnA
+        model.addAttribute("qnaList", qnaService.getQnaList(id));
+
         return "product/detail";
     }
     @GetMapping("/update/{id}")
@@ -86,7 +113,7 @@ public class ProductController {
                 updatedProduct.getStock());
         return "redirect:/product/detail/" + id;
     }
-    @DeleteMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String delete(@PathVariable Long id) {
         productService.delete(id);
         return "redirect:/product/list";
