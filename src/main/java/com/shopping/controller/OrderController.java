@@ -1,6 +1,7 @@
 package com.shopping.controller;
 
 import com.shopping.entity.Member;
+import com.shopping.entity.OrderStatus;
 import com.shopping.entity.Product;
 import com.shopping.repository.MemberRepository;
 import com.shopping.service.OrderService;
@@ -55,5 +56,15 @@ public class OrderController {
             model.addAttribute("errorMessage", e.getMessage());
             return "order";
         }
+    }
+    @PostMapping("/order/status")
+    public String updateOrderStatus(@RequestParam Long orderItemId,
+                                    @RequestParam OrderStatus status,
+                                    HttpSession session) {
+        Long sellerId = (Long) session.getAttribute("LOGIN_MEMBER_ID");
+        if (sellerId == null) return "redirect:/member/login";
+
+        orderService.updateOrderItemStatus(orderItemId, sellerId, status);
+        return "redirect:/member/mypage?tab=sales";
     }
 }

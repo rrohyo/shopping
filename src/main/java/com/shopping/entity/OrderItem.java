@@ -27,5 +27,7 @@ public class OrderItem {
     private Long price;
     private int quantity;
     private Long subtotal;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 }

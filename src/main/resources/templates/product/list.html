@@ -40,6 +40,16 @@
             font-size: 28px;
             font-weight: 600;
         }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-decoration: none;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+        }
+
         .btn-logout {
             padding: 8px 16px;
             background-color: #e74c3c;
@@ -490,7 +500,7 @@
     <!-- 헤더 -->
     <div class="header">
         <div class="header-container">
-            <h1>🛍️ MyShop </h1>
+            <a href="/home" th:href="@{/home}" class="logo">🛍️ MyShop</a>
             <div class="header-nav">
                 <a href="/home" th:href="@{/home}">홈</a>
                 <a href="/product/list" th:href="@{/product/list}">상품목록</a>

@@ -20,7 +20,10 @@ public class Order {
 
     private Long memberId;
     private Long totalAmount;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
     private String deliveryAddress;
     private String deliveryPhone;
     private LocalDateTime orderDate;

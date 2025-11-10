@@ -331,12 +331,12 @@
             font-weight: 600;
         }
 
-        .status-pending {
+        .status-paid {
             background: #fff3cd;
             color: #856404;
         }
 
-        .status-paid {
+        .status-ready {
             background: #cce5ff;
             color: #004085;
         }
@@ -729,27 +729,18 @@
 
             <!-- 탭 메뉴 -->
             <div class="tabs">
-                <button class="tab-button active" onclick="showTab('profile')">
-                    👤 내 정보
-                </button>
-                <button class="tab-button" onclick="showTab('orders')">
-                    🛒 구매 내역
+                <button type="button" class="tab-button active" onclick="showTab(event,'profile')">👤 내 정보</button>
+                <button type="button" class="tab-button"        onclick="showTab(event,'orders')">🛒 구매 내역
                     <span class="tab-badge" th:if="${orderCount > 0}" th:text="${orderCount}">0</span>
                 </button>
-                <button class="tab-button" onclick="showTab('product')">
-                    📦 판매 상품
+                <button type="button" class="tab-button"        onclick="showTab(event,'product')">📦 판매 상품
                     <span class="tab-badge" th:if="${productCount > 0}" th:text="${productCount}">0</span>
                 </button>
-                <button class="tab-button" onclick="showTab('sales')">
-                    💰 판매 내역
+                <button type="button" class="tab-button"        onclick="showTab(event,'sales')">💰 판매 내역
                     <span class="tab-badge" th:if="${salesCount > 0}" th:text="${salesCount}">0</span>
                 </button>
-                <button class="tab-button" onclick="showTab('edit', event)">
-                    ✏️ 정보 수정
-                </button>
-                <button class="tab-button" onclick="showTab('settings')">
-                    ⚙️ 설정
-                </button>
+                <button type="button" class="tab-button"        onclick="showTab(event,'edit')">✏️ 정보 수정</button>
+                <button type="button" class="tab-button"        onclick="showTab(event,'settings')">⚙️ 설정</button>
             </div>
 
             <!-- 탭 컨텐츠 -->
@@ -819,17 +810,17 @@
                     <div class="order-list" th:if="${orderItems != null and !#lists.isEmpty(orderItems)}">
                         <div class="order-card" th:each="item : ${orderItems}">
                             <div class="order-header">
-                                <div>
-                                    <div class="order-date">
-                                        주문일시:
-                                        <span th:text="${#temporals.format(item.order.orderDate, 'yyyy년 MM월 dd일 HH:mm')}">2025년 11월 06일</span>
-                                    </div>
+                                <div class="order-date">
+                                    주문일시:
+                                    <span th:text="${(item.order != null and item.order.orderDate != null)
+            ? #temporals.format(item.order.orderDate, 'yyyy.MM.dd HH:mm')
+            : '—'}">—</span>
                                 </div>
 
-                                <!-- 상태/클래스 null-safe -->
+                                <!-- 상태/클래스 null-safe (enum 기준) -->
                                 <div class="order-status"
-                                     th:classappend="${'status-' + (item.status != null ? #strings.toLowerCase(item.status) : 'pending')}"
-                                     th:text="${item.status != null ? item.status : 'PENDING'}">PENDING</div>
+                                     th:classappend="${'status-' + (item.status != null ? #strings.toLowerCase(item.status) : 'paid')}"
+                                     th:text="${item.status != null ? item.status : 'PAID'}">PAID</div>
                             </div>
 
                             <div class="order-body">
@@ -850,7 +841,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- 구매 내역 없음 -->
                     <div class="empty-state" th:if="${orderItems == null or #lists.isEmpty(orderItems)}">
                         <div class="empty-icon">🛒</div>
@@ -928,17 +918,29 @@
                                     </div>
                                     <div class="sales-date">
                                         주문일시:
-                                        <span th:text="${#temporals.format(item.order.orderDate, 'yyyy.MM.dd HH:mm')}">2025.11.06 12:00</span>
+                                        <span th:text="${(item.order != null and item.order.orderDate != null)
+              ? #temporals.format(item.order.orderDate, 'yyyy.MM.dd HH:mm')
+              : '—'}">—</span>
                                     </div>
                                 </div>
+
                                 <div style="text-align: right;">
                                     <div class="sales-amount"
                                          th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT') + '원'}">0원</div>
 
-                                    <!-- 상태/클래스 null-safe -->
-                                    <span class="order-status"
-                                          th:classappend="${'status-' + (item.status != null ? #strings.toLowerCase(item.status) : 'pending')}"
-                                          th:text="${item.status != null ? item.status : 'PENDING'}">PENDING</span>
+                                    <!-- 판매자만 상태 변경 가능 (컨트롤러: POST /product/order/status) -->
+                                    <form th:if="${session.LOGIN_MEMBER_ID != null and session.LOGIN_MEMBER_ID == item.sellerId}"
+                                          th:action="@{/product/order/status}" method="post" style="display:inline;">
+                                        <input type="hidden" name="orderItemId" th:value="${item.id}" />
+                                        <input type="hidden" th:if="${_csrf != null}"
+                                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <select name="status" onchange="this.form.submit()">
+                                            <option th:each="s : ${T(com.shopping.entity.OrderStatus).values()}"
+                                                    th:value="${s}"
+                                                    th:text="${s}"
+                                                    th:selected="${s == item.status}">PAID</option>
+                                        </select>
+                                    </form>
                                 </div>
                             </div>
 
@@ -948,15 +950,12 @@
                                     <div class="order-item-info">
                                         <div class="order-item-details">
                                             수량: <span th:text="${item.quantity}">1</span>개
-                                            <!-- 단가가 필요하면 아래 주석 해제 -->
-                                            <!-- | 단가: <span th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</span> -->
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <!-- 판매 내역 없음 -->
                     <div class="empty-state" th:if="${salesItems == null or #lists.isEmpty(salesItems)}">
                         <div class="empty-icon">💰</div>
@@ -1027,26 +1026,34 @@
     </div>
 
     <script th:inline="javascript">
-        //  탭 전환 함수 수정 (event 인자 명시)
-    function showTab(tabName, event) {
-        const panels = document.querySelectorAll('.tab-panel');
-        const buttons = document.querySelectorAll('.tab-button');
+        // 탭 전환 함수 (항상 e, tabName 순서로)
+        function showTab(e, tabName) {
+          if (e && e.preventDefault) e.preventDefault();
 
-        panels.forEach(panel => panel.classList.remove('active'));
-        buttons.forEach(button => button.classList.remove('active'));
+          // 패널/버튼 active 초기화
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
 
-        document.getElementById(tabName).classList.add('active');
-        if (event && event.target) {
-            event.target.classList.add('active');
+          // 대상 패널 활성화
+          const panel = document.getElementById(tabName);
+          if (panel) panel.classList.add('active');
+
+          // 클릭한 버튼 활성화
+          if (e && e.currentTarget) e.currentTarget.classList.add('active');
+          else {
+            // URL 파라미터로 열었을 때: 해당 탭 버튼도 active 주기
+            const btn = Array.from(document.querySelectorAll('.tab-button'))
+              .find(b => b.getAttribute('onclick')?.includes("'" + tabName + "'"));
+            if (btn) btn.classList.add('active');
+          }
         }
-    }
 
-    // URL 파라미터로 탭 지정 시에도 동작
-    const urlParams = new URLSearchParams(window.location.search);
-    const tab = urlParams.get('tab');
-    if (tab) {
-        showTab(tab);
-    }
+        // URL 파라미터로 탭 열기 (?tab=sales 등)
+        (function () {
+          const params = new URLSearchParams(window.location.search);
+          const tab = params.get('tab');
+          if (tab) showTab(null, tab);   // <- 항상 (null, tabName) 형태로
+        })();
     </script>
 </body>
 </html>

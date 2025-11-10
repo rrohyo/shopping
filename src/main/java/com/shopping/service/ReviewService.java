@@ -42,7 +42,7 @@ public class ReviewService {
                 .filter(oi -> oi.getProductId().equals(productId))
                 .filter(oi -> !reviewRepository.existsByOrderItemId(oi.getId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("해당 상품을 구매한 이력이 없거나, 이미 리뷰를 작성했어요."));
+                .orElseThrow(() -> new IllegalStateException("구매 이력이 없거나 리뷰를 이미 작성했습니다"));
 
         int validRating = (rating >= 1 && rating <= 5) ? rating : 1;
 
