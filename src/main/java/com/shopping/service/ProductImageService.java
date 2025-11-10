@@ -51,14 +51,19 @@ public class ProductImageService {
             saveImages(product, files);
         }
     }
-    public List<ProductImage> firstImageUrlMap(Set<Long> productIds) {
-        List<ProductImage> result = new ArrayList<>();
-        for (Long pid : productIds) {
-            List<ProductImage> list = productImageRepository.findByProductId(pid);
-            if (list != null && !list.isEmpty()) {
-                result.addAll(list);
-            }
+    public String getImageUrl(Long productId) {   // ← 더 일반적이고 자연스러운 이름
+        if (productId == null) return null;
+
+        List<ProductImage> images = productImageRepository.findByProductId(productId);
+        if (images == null || images.isEmpty()) return null;
+
+        ProductImage first = images.get(0);
+        if (first.getUrl() != null && !first.getUrl().isEmpty()) {
+            return first.getUrl();
         }
-        return result;
+        if (first.getImageName() != null && !first.getImageName().isEmpty()) {
+            return "/uploads/" + first.getImageName();
+        }
+        return null;
     }
 }

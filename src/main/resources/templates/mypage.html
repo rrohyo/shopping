@@ -824,16 +824,15 @@
                             </div>
 
                             <div class="order-body">
-                                <div class="order-item-image">
-                                    <div class="order-item-image" style="width:80px;height:80px;">
-<!--                                        <img th:if="${imageUrlByPid[item.productId] != null}"-->
-<!--                                             th:src="${imageUrlByPid[item.productId]}"-->
-<!--                                             alt="상품 이미지"-->
-<!--                                             style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">-->
-                                        <div th:if="${not #strings.isEmpty(images)}"
-                                             style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;
+                                <div class="order-item-image" style="width:80px;height:80px;">
+                                    <img th:if="${images != null and #maps.containsKey(images, item.productId)}"
+                                         th:src="${images[item.productId]}"
+                                         alt="상품 이미지"
+                                         style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                                    <div th:unless="${images != null and #maps.containsKey(images, item.productId)}"
+                                         style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;
               font-size:36px;border:1px solid #ddd;border-radius:6px;">📦</div>
-                                    </div>
+                                </div>
                                     <div class="order-item-info">
                                         <div class="order-item-name" th:text="${item.productName}">상품명</div>
                                         <div class="order-item-details">
@@ -879,32 +878,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="product : ${product}">
-                                <td>
-                                    <div class="product-info-cell">
-                                        <div class="order-item-image" style="width:80px;height:80px;">
-<!--                                            <img th:if="${imageUrlByPid.containsKey(item.productId) != null}"-->
-<!--                                                 th:src="${imageUrlByPid.containsKey(item.productId)}"-->
-<!--                                                 alt="상품 이미지"-->
-<!--                                                 style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">-->
-                                            <div th:if="${not #strings.isEmpty(images)}"
-                                                 style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;
-              font-size:36px;border:1px solid #ddd;border-radius:6px;">📦</div>
-                                        </div>
-                                        <div class="product-name-cell" th:text="${product.name}">상품명</div>
+                        <tr th:each="p : ${product}">
+                            <td>
+                                <div class="product-info-cell">
+                                    <div class="order-item-image" style="width:80px;height:80px;">
+                                        <img th:if="${images != null and #maps.containsKey(images, p.id)}"
+                                             th:src="${images[p.id]}"
+                                             alt="상품 이미지"
+                                             style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                                        <div th:unless="${images != null and #maps.containsKey(images, p.id)}"
+                                             style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;
+               font-size:36px;border:1px solid #ddd;border-radius:6px;">📦</div>
                                     </div>
-                                </td>
-                                <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</td>
-                                <td>
-                                    <span th:style="${product.stock == 0 ? 'color: #e74c3c;' : ''}"
-                                          th:text="${product.stock + '개'}">0개</span>
-                                </td>
-                                <td th:text="${#temporals.format(product.regDate, 'yyyy.MM.dd')}">2024.01.01</td>
-                                <td>
-                                    <a th:href="@{/product/update/{id}(id=${product.id})}" class="btn btn-sm btn-secondary">수정</a>
-                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-sm btn-outline">상세</a>
-                                </td>
-                            </tr>
+                                    <div class="product-name-cell" th:text="${p.name}">상품명</div>
+                                </div>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') + '원'}">0원</td>
+                            <td>
+      <span th:style="${p.stock == 0 ? 'color: #e74c3c;' : ''}"
+            th:text="${p.stock + '개'}">0개</span>
+                            </td>
+                            <td th:text="${#temporals.format(p.regDate, 'yyyy.MM.dd')}">2024.01.01</td>
+                            <td>
+                                <a th:href="@{/product/update/{id}(id=${p.id})}" class="btn btn-sm btn-secondary">수정</a>
+                                <a th:href="@{/product/detail/{id}(id=${p.id})}" class="btn btn-sm btn-outline">상세</a>
+                            </td>
+                        </tr>
                         </tbody>
                     </table>
                     
@@ -961,17 +960,15 @@
                             </div>
 
                             <div class="sales-body">
-                                <div class="order-item-image">
-                                    <div class="order-item-image" style="width:80px;height:80px;">
-<!--                                        <img th:if="${imageUrlByPid[item.productId] != null}"-->
-<!--                                             th:src="${imageUrlByPid[item.productId]}"-->
-<!--                                             alt="상품 이미지"-->
-<!--                                             style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">-->
-                                        <div th:if="${not #strings.isEmpty(images)}"
-                                             style="width:80px;height:80px;            background: white;
-;display:flex;align-items:center;justify-content:center;
-              font-size:36px;border:1px solid #ddd;border-radius:6px;">📦<p>fdsajklfsajlkdfjlkajfl</p></div>
-                                    </div>
+                                <div class="order-item-image" style="width:80px;height:80px;">
+                                    <img th:if="${images != null and #maps.containsKey(images, item.productId)}"
+                                         th:src="${images[item.productId]}"
+                                         alt="상품 이미지"
+                                         style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">
+                                    <div th:unless="${images != null and #maps.containsKey(images, item.productId)}"
+                                         style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;
+              font-size:36px;border:1px solid #ddd;border-radius:6px;">📦</div>
+                                </div>
                                     <div class="order-item-info">
                                         <div class="order-item-details">
                                             수량: <span th:text="${item.quantity}">1</span>개

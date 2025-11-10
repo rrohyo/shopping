@@ -12,12 +12,12 @@ public class QnaAnswer {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "qna_id") // qna_answer.qna_id FK
+    @JoinColumn(name = "qna_id")
     private Qna qna;
 
-    private Long sellerId;        // 판매자(상품 등록자) ID
+    private Long sellerId;
     @Lob
-    private String content;       // 답변 내용
+    private String content;
     private LocalDateTime regDate;
     private LocalDateTime updateDate;
 }

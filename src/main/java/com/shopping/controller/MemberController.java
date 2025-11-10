@@ -6,6 +6,7 @@ import com.shopping.entity.Product;
 import com.shopping.entity.ProductImage;
 import com.shopping.repository.MemberRepository;
 import com.shopping.repository.OrderItemRepository;
+import com.shopping.repository.ProductImageRepository;
 import com.shopping.service.MemberService;
 import com.shopping.service.OrderService;
 import com.shopping.service.ProductImageService;
@@ -16,8 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class MemberController {
     private final ProductService productService;
     private final MemberRepository memberRepository;
     private final OrderService orderService;
-    private final ProductImageService productImageService;
+    private final ProductImageRepository productImageRepository;
 
     @GetMapping("/signup")
     public String signupForm(Model model) {
@@ -85,36 +85,35 @@ public class MemberController {
         List<Product> product = productService.findByMemberId(memberId);
         List<OrderItem> orderItems = orderService.getMyOrders(memberId);
         List<OrderItem> salesItems = orderService.getMySales(memberId);
-        java.util.Set<Long> productIds = new java.util.HashSet<>();
 
-        if (product != null) {
-            for (Product p : product) {
-                if (p != null && p.getId() != null) productIds.add(p.getId());
+        Set<Long> productIds = new HashSet<>();
+        for (OrderItem oi : orderItems) {
+            if (oi.getProductId() != null) productIds.add(oi.getProductId());
+        }
+        for (OrderItem si : salesItems) {
+            if (si.getProductId() != null) productIds.add(si.getProductId());
+        }
+        for (Product p : product) {
+            if (p.getId() != null) productIds.add(p.getId());
+        }
+
+        Map<Long, String> images = new HashMap<>();
+        for (Long pid : productIds) {
+            List<ProductImage> imgs = productImageRepository.findByProductId(pid);
+            if (imgs != null && !imgs.isEmpty()) {
+                ProductImage first = imgs.get(0);
+                String url = (first.getUrl() != null && !first.getUrl().isEmpty())
+                        ? first.getUrl()
+                        : "/uploads/" + first.getImageName();
+                images.put(pid, url);
             }
         }
-        if (orderItems != null) {
-            for (OrderItem oi : orderItems) {
-                if (oi != null && oi.getProductId() != null) productIds.add(oi.getProductId());
-            }
-        }
-        if (salesItems != null) {
-            for (OrderItem si : salesItems) {
-                if (si != null && si.getProductId() != null) productIds.add(si.getProductId());
-            }
-        }
-        List<ProductImage> imageUrlByPid = productImageService.firstImageUrlMap(productIds);
-        System.out.println("----------");
-        for (Product product1 : product) {
-            System.out.println(product1.getImages().isEmpty());
-        }
-        System.out.println("----------");
 
         model.addAttribute("member", member);
         model.addAttribute("product", product);
         model.addAttribute("orderItems", orderItems);
         model.addAttribute("salesItems", salesItems);
-        model.addAttribute("imageUrlByPid", imageUrlByPid);
-
+        model.addAttribute("images", images);
         return "mypage";
     }
 
