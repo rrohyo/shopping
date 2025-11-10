@@ -10,8 +10,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +23,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     @Transactional
     public Product create(Long memberId, String name,String description, int price, int stock) {
-        Product p = Product.builder()
+        Product product = Product.builder()
                 .memberId(memberId)
                 .name(name)
                 .price(price)
@@ -28,7 +32,7 @@ public class ProductService {
                 .regDate(LocalDateTime.now())
                 .updateDate(LocalDateTime.now())
                 .build();
-        return productRepository.save(p);
+        return productRepository.save(product);
     }
     @Transactional(readOnly = true)
     public Page<Product> getList(String nameKeyword, int page, int size, String sortKey) {

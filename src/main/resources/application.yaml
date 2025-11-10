@@ -1,9 +1,17 @@
+file:
+  upload-dir: "/Users/sanghyun/Downloads/files"
+
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/shopping_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: 98911014
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 30MB
 
   jpa:
     hibernate:
@@ -22,6 +30,3 @@ spring:
 
 server:
   port: 8088
-
-
-

@@ -498,9 +498,18 @@
                style="cursor:pointer; text-decoration:none; color:inherit;">
 
                 <div class="product-image-wrapper">
+                    <!-- 업로드된 첫 번째 이미지가 있으면 보여주기 -->
                     <img class="product-image"
-                         src="https://via.placeholder.com/280x250/4a90e2/fff?text=Headphones"
+                         th:if="${p.images != null and !#lists.isEmpty(p.images)}"
+                         th:src="@{'/uploads/' + ${p.images[0].imageName}}"
                          th:alt="${p.name}">
+
+                    <!-- 업로드된 이미지가 없으면 기본 placeholder 표시 -->
+                    <img class="product-image"
+                         th:if="${p.images == null or #lists.isEmpty(p.images)}"
+                         src="https://via.placeholder.com/280x250/4a90e2/fff?text=No+Image"
+                         th:alt="${p.name}">
+
                     <span class="product-badge badge-new">NEW</span>
                     <span class="product-badge" style="top: 40px;">0%</span>
                 </div>

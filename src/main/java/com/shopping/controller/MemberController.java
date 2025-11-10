@@ -3,10 +3,12 @@ package com.shopping.controller;
 import com.shopping.entity.Member;
 import com.shopping.entity.OrderItem;
 import com.shopping.entity.Product;
+import com.shopping.entity.ProductImage;
 import com.shopping.repository.MemberRepository;
 import com.shopping.repository.OrderItemRepository;
 import com.shopping.service.MemberService;
 import com.shopping.service.OrderService;
+import com.shopping.service.ProductImageService;
 import com.shopping.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class MemberController {
     private final ProductService productService;
     private final MemberRepository memberRepository;
     private final OrderService orderService;
+    private final ProductImageService productImageService;
 
     @GetMapping("/signup")
     public String signupForm(Model model) {
@@ -81,11 +85,35 @@ public class MemberController {
         List<Product> product = productService.findByMemberId(memberId);
         List<OrderItem> orderItems = orderService.getMyOrders(memberId);
         List<OrderItem> salesItems = orderService.getMySales(memberId);
+        java.util.Set<Long> productIds = new java.util.HashSet<>();
+
+        if (product != null) {
+            for (Product p : product) {
+                if (p != null && p.getId() != null) productIds.add(p.getId());
+            }
+        }
+        if (orderItems != null) {
+            for (OrderItem oi : orderItems) {
+                if (oi != null && oi.getProductId() != null) productIds.add(oi.getProductId());
+            }
+        }
+        if (salesItems != null) {
+            for (OrderItem si : salesItems) {
+                if (si != null && si.getProductId() != null) productIds.add(si.getProductId());
+            }
+        }
+        List<ProductImage> imageUrlByPid = productImageService.firstImageUrlMap(productIds);
+        System.out.println("----------");
+        for (Product product1 : product) {
+            System.out.println(product1.getImages().isEmpty());
+        }
+        System.out.println("----------");
 
         model.addAttribute("member", member);
         model.addAttribute("product", product);
         model.addAttribute("orderItems", orderItems);
         model.addAttribute("salesItems", salesItems);
+        model.addAttribute("imageUrlByPid", imageUrlByPid);
 
         return "mypage";
     }

@@ -5,6 +5,7 @@ import com.shopping.entity.Qna;
 import com.shopping.entity.QnaAnswer;
 import com.shopping.entity.Review;
 import com.shopping.repository.ReviewRepository;
+import com.shopping.service.ProductImageService;
 import com.shopping.service.ProductService;
 import com.shopping.service.QnaService;
 import com.shopping.service.ReviewService;
@@ -14,7 +15,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +28,7 @@ public class ProductController {
     private final ProductService productService;
     private final ReviewService reviewService;
     private final QnaService qnaService;
+    private final ProductImageService productImageService;
     @GetMapping("/list")
     public String list(@RequestParam(required = false) String name,
                        @RequestParam(defaultValue = "0") int page,
@@ -57,30 +61,33 @@ public class ProductController {
 
 
     @PostMapping("/create")
-    public String create(HttpSession session, @ModelAttribute Product product) {
+    public String create(HttpSession session,
+                         @ModelAttribute Product product) throws IOException {
         Long memberId = (Long) session.getAttribute("LOGIN_MEMBER_ID");
-        if (memberId == null) {
-            throw new IllegalStateException("로그인이 필요합니다.");
-        }
-        productService.create(
-                memberId,
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStock()
+        if (memberId == null) throw new IllegalStateException("로그인이 필요합니다.");
+
+        Product saved = productService.create(
+                memberId, product.getName(), product.getDescription(),
+                product.getPrice(), product.getStock()
         );
-        return "redirect:/home";
+
+        if (product.getImageFiles() != null && !product.getImageFiles().isEmpty()) {
+            productImageService.saveImages(saved, product.getImageFiles());
+        }
+
+        return "redirect:/product/detail/" + saved.getId();
     }
+
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable Long id, HttpSession session, Model model) {
-        // 상품 조회
+
         Product p = productService.findById(id);
         model.addAttribute("product", p);
 
-        // 로그인 사용자
+
         model.addAttribute("sessionMemberId", session.getAttribute("LOGIN_MEMBER_ID"));
 
-        // 리뷰 관련 정보
+
         model.addAttribute("reviews", reviewService.getReviewsByProduct(id));
         model.addAttribute("reviewCount", reviewService.getReviewCount(id));
         double avg = reviewService.getAverageRating(id); // 0.0 ~ 5.0
@@ -91,7 +98,7 @@ public class ProductController {
         model.addAttribute("avgRating", avg);
         model.addAttribute("fullStars", fullStars);
         model.addAttribute("emptyStars", emptyStars);
-        // QnA
+
         model.addAttribute("qnaList", qnaService.getQnaList(id));
 
         return "product/detail";
@@ -105,12 +112,32 @@ public class ProductController {
 
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id,
-                         @ModelAttribute Product updatedProduct) {
-        productService.update(id,
+                         @ModelAttribute Product updatedProduct,
+                         @RequestParam(value = "newImages", required = false) List<MultipartFile> images,
+                         @RequestParam(value = "deleteImageIds", required = false) List<Long> deleteImageIds) {
+
+        productService.update(
+                id,
                 updatedProduct.getName(),
                 updatedProduct.getDescription(),
                 updatedProduct.getPrice(),
-                updatedProduct.getStock());
+                updatedProduct.getStock()
+        );
+
+        if (deleteImageIds != null && !deleteImageIds.isEmpty()) {
+            for (Long imageId : deleteImageIds) {
+                productImageService.deleteImage(imageId);
+            }
+        }
+        if (images != null && !images.isEmpty() && !images.get(0).isEmpty()) {
+            Product product = productService.findById(id);
+            try {
+                productImageService.saveImages(product, images);
+            } catch (IOException e) {
+                System.err.println("이미지 업로드 실패: " + e.getMessage());
+            }
+        }
+
         return "redirect:/product/detail/" + id;
     }
     @PostMapping("/delete/{id}")

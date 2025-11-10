@@ -611,12 +611,38 @@
             <div class="product-main">
                 <!-- 이미지 영역 -->
                 <div class="product-images">
-                    <div class="main-image">📦</div>
-                    <div class="image-thumbnails">
-                        <div class="thumbnail active">📦</div>
-                        <div class="thumbnail">📷</div>
-                        <div class="thumbnail">🎁</div>
-                        <div class="thumbnail">📸</div>
+                    <!-- 메인 이미지 -->
+                    <div class="main-image">
+                        <img id="mainImage"
+                             th:if="${product.images != null and !#lists.isEmpty(product.images)}"
+                             th:src="@{'/uploads/' + ${product.images[0].imageName}}"
+                             th:alt="${product.name}"
+                             style="max-width:100%; height:auto; display:block;">
+
+                        <!-- 업로드 이미지가 없을 때 -->
+                        <img th:if="${product.images == null or #lists.isEmpty(product.images)}"
+                             src="https://via.placeholder.com/600x500/cccccc/ffffff?text=No+Image"
+                             th:alt="${product.name}"
+                             style="max-width:100%; height:auto; display:block;">
+                    </div>
+
+                    <!-- 썸네일 -->
+                    <div class="image-thumbnails" style="display:flex; gap:8px; margin-top:10px;">
+                        <!-- 업로드된 썸네일들 -->
+                        <img class="thumbnail active"
+                             th:if="${product.images != null and !#lists.isEmpty(product.images)}"
+                             th:each="img, iStat : ${product.images}"
+                             th:src="@{'/uploads/' + ${img.imageName}}"
+                             th:alt="${product.name}"
+                             th:classappend="${iStat.index == 0} ? ' active' : ''"
+                             style="width:80px; height:80px; object-fit:cover; cursor:pointer; border-radius:8px; border:2px solid #eee;">
+
+                        <!-- 이미지가 하나도 없을 때의 썸네일 -->
+                        <img class="thumbnail"
+                             th:if="${product.images == null or #lists.isEmpty(product.images)}"
+                             src="https://via.placeholder.com/80x80/cccccc/ffffff?text=No+Image"
+                             th:alt="${product.name}"
+                             style="width:80px; height:80px; object-fit:cover; border-radius:8px; border:2px solid #eee;">
                     </div>
                 </div>
 
@@ -995,21 +1021,24 @@
 
 
 
-        // 이미지 썸네일 클릭 이벤트
-        document.querySelectorAll('.thumbnail').forEach(thumb => {
-            thumb.addEventListener('click', function() {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        function toggleEdit(answerId) {
-    const view = document.getElementById('answer-view-' + answerId);
-    const edit = document.getElementById('answer-edit-' + answerId);
-    if (!view || !edit) return;
-    const isHidden = edit.style.display === 'none' || edit.style.display === '';
-    edit.style.display = isHidden ? 'block' : 'none';
-    view.style.display = isHidden ? 'none' : 'block';
-  }
+       document.addEventListener('DOMContentLoaded', function () {
+    const mainImg = document.getElementById('mainImage');
+    const thumbs = document.querySelectorAll('.image-thumbnails .thumbnail');
+
+    if (!mainImg || !thumbs.length) return;
+
+    thumbs.forEach(t => {
+      t.addEventListener('click', () => {
+        // 메인 이미지 src 교체
+        mainImg.src = t.src;
+
+        // active 표시 토글
+        thumbs.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+      });
+    });
+  });
+
     </script>
 </body>
 </html>
